@@ -43,8 +43,6 @@ jobs:
           release_name: Release ${{ needs.get-publish-version.outputs.publish-version }}
           draft: false
           prerelease: false
-      - name: Gunzip Asset Prior to Upload
-        run: gzip ./build/distributions/hbase-table-provisioner-0.0.1.tar
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
