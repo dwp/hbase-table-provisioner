@@ -50,7 +50,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/libs/hbase-table-provisioner-0.0.1.jar
+          asset_path: ./build/hbase-table-provisioner-0.0.1.jar
           asset_name: hbase-table-provisioner-${{ needs.get-publish-version.outputs.publish-version }}.jar
           asset_content_type: application
 
@@ -70,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: built-app
-          path: build
+          path: build/libs
