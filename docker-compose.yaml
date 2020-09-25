@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+
+  hbase_table_provisioner:
+    image: hbase_table_provisioner:latest
+    build: ./
+    container_name: hbase-table-provisioner
+    depends_on:
+      - hbase
+    environment:
+      CONTAINER_VERSION: "latest"
+      ENVIRONMENT: "local-dev"
+      APPLICATION_NAME: "hbase-table-provisioner"
+      APP_VERSION: "test"
+      LOG_LEVEL: DEBUG
+      HBASE_TABLE_PATTERN: db\.([-\w]+)\.([-\w]+)
+      HBASE_ZOOKEEPER_PARENT: "/hbase"
+      HBASE_ZOOKEEPER_PORT: "2181"
+      HBASE_ZOOKEEPER_QUORUM: "hbase"
+      HBASE_RPC_TIMEOUT_MILLISECONDS: "1200"
+      HBASE_CLIENT_TIMEOUT_MS: "1200"
+      HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_MS: "12000"
+      HBASE_OPERATION_TIMEOUT_MILLISECONDS": "1800"
+      HBASE_PAUSE_MILLISECONDS: "50"
+      HBASE_RETRIES": "3"
+      COLLECTION_S3_BUCKET: "s3://bucket"
+      COLLECTION_S3_PATH: "/path/to/collections"
+      REGION_TARGET_SIZE: "200"
+      REGION_SERVER_SIZE: "150"
+
+  hbase:
+    image: harisekhon/hbase:1.4
+    ports:
+      - 9090:9090
+      - 9095:9095
+      - 2181:2181
+      - 16201:16201
+    container_name: hbase
+
+  htp-integration-test:
+    image: htp-integration:latest
+    container_name: htp-integration-test
+    build:
+      dockerfile: docker/integration/Dockerfile
+      context: .
+    depends_on:
+      - hbase_table_provisioner
+    command: "gradle --rerun-tasks integration"
+    environment:
+      CONTAINER_VERSION: "latest"
+      ENVIRONMENT: "local-dev"
+      APPLICATION_NAME: "hbase-table-provisioner"
+      APP_VERSION: "test"
+      LOG_LEVEL: DEBUG
+      HBASE_TABLE_PATTERN: ([-\w]+)\.([-\w]+)
+      HBASE_ZOOKEEPER_PARENT: "/hbase"
+      HBASE_ZOOKEEPER_PORT: "2181"
+      HBASE_ZOOKEEPER_QUORUM: "hbase"
+      HBASE_RPC_TIMEOUT_MILLISECONDS: "1200"
+      HBASE_CLIENT_TIMEOUT_MS: "1200"
+      HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_MS: "12000"
+      HBASE_OPERATION_TIMEOUT_MILLISECONDS": "1800"
+      HBASE_PAUSE_MILLISECONDS: "50"
+      HBASE_RETRIES": "3"
+
+volumes:
+  shared-volume:

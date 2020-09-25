@@ -38,3 +38,34 @@ integration-load-test: ## Run the integration load tests in a Docker container
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
 integration-all:
 	echo "WIP"
+
+hbase-shell: ## Open an HBase shell onto the running HBase container
+	docker-compose run --rm hbase shell
+
+hbase-up: ## Bring up and provision mysql
+	docker-compose -f docker-compose.yaml up -d hbase
+	@{ \
+		echo Waiting for hbase.; \
+		while ! docker logs hbase 2>&1 | grep "Master has completed initialization" ; do \
+			sleep 2; \
+			echo Waiting for hbase.; \
+		done; \
+		sleep 5; \
+		echo ...hbase ready.; \
+	}
+
+services: hbase-up ## Bring up supporting services in docker
+
+up: services ## Bring up Reconciliation in Docker with supporting services
+	docker-compose -f docker-compose.yaml up --build -d hbase_table_provisioner
+
+restart: ## Restart HTP and all supporting services
+	docker-compose restart
+
+down: ## Bring down the HTP Docker container and support services
+	docker-compose down
+
+destroy: down ## Bring down the HTP Docker container and services then delete all volumes
+	docker network prune -f
+	docker volume prune -f
+
