@@ -1,18 +1,16 @@
 package app.service.impl
 
+import app.domain.CollectionSummary
 import app.service.S3ReaderService
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.SdkClientException
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.GetObjectRequest
 import com.amazonaws.services.s3.model.ListObjectsV2Request
 import com.amazonaws.services.s3.model.ListObjectsV2Result
+import com.amazonaws.services.s3.model.S3ObjectSummary
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
-import java.io.IOException
 
 
 @Service
@@ -23,9 +21,16 @@ class S3ReaderServiceImpl(
 ) : S3ReaderService {
 
     override fun getCollections(): List<String> {
+        val collectionSummaries = getListOfObjectsInPath(path)
+        collectionSummaries.forEach {
+            val collectionSummaryList = getListOfObjectsInPath(it.key)
+            val collectionSummary = getCollectionSummary(it.key, collectionSummaryList!!)
+        }
+    }
 
+    fun getListOfObjectsInPath(objectPath: String): MutableList<S3ObjectSummary>? {
         try {
-            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(path).withMaxKeys(1000)
+            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(objectPath).withMaxKeys(1000)
             var result: ListObjectsV2Result
             do {
                 result = s3Client.listObjectsV2(request)
@@ -37,21 +42,19 @@ class S3ReaderServiceImpl(
                 val token = result.nextContinuationToken
                 logger.debug("Paginated results, using continuation token to fetch more results", "token" to token.toString())
                 request.continuationToken = token
+
             } while (result.isTruncated)
+            return result.objectSummaries
         } catch (e: AmazonServiceException) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process
-            // it, so it returned an error response.
-            e.printStackTrace()
             logger.error("Amazon S3 failed to process the request", "error" to e.localizedMessage)
         } catch (e: SdkClientException) {
-            // Amazon S3 couldn't be contacted for a response, or the client
-            // couldn't parse the response from Amazon S3.
-            e.printStackTrace()
-            logger.error("Amazon S3 couldn't be reached or the response wasn't parseable", "error" to e.localizedMessage)
+            logger.error("Amazon S3 couldn't be reached or the response wasn't able to be parsed", "error" to e.localizedMessage)
         }
+    }
 
-
-        return listOf()
+    fun getCollectionSummary(key: String, collectionSummaries: MutableList<S3ObjectSummary>) {
+        val collectionByteSize = collectionSummaries.sumBy { it.size }
+        CollectionSummary(key, collectionSummaries)
     }
 
     companion object {
