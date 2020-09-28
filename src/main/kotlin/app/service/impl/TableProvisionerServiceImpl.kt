@@ -1,7 +1,6 @@
 package app.service.impl
 
 import app.service.TableProvisionerService
-import com.amazonaws.services.s3.AmazonS3Client
 import org.springframework.stereotype.Service
 
 @Service
@@ -10,7 +9,8 @@ class TableProvisionerServiceImpl(val s3ReaderService: S3ReaderServiceImpl) : Ta
     override fun provisionHbaseTable(a: Int, b: Int): Int {
         // TODO
         // Call S3 Client and get a list of collections + byte sizes of files
-        val collections = s3ReaderService.getCollections()
+
+        val collectionSummaries = s3ReaderService.getCollectionSummaries()
 
         // Calculate number of regions
         // Total of regions - calculated by multiplying number of region servers by the desired region count per server
