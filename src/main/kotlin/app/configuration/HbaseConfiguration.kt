@@ -19,15 +19,11 @@ data class HBaseConfiguration(
         var clientScannerTimeoutPeriodMs: String? = "NOT_SET",
         var clientTimeoutMs: String? = "NOT_SET",
         var rpcReadTimeoutMs: String? = "NOT_SET",
-        var retries: String? = "NOT_SET"
-        var dataFamily: String? = "cf"
-        var dataQualifer: String? = "record"
+        var retries: String? = "NOT_SET",
+        var columnFamily: String? = "cf",
+        var columnQualifier: String? = "record",
         var regionReplication: Int = 3
 ) {
-
-    companion object {
-        val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
-    }
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
 
@@ -41,8 +37,6 @@ data class HBaseConfiguration(
             setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries?.toIntOrNull() ?: 666)
         }
 
-
-
         logger.info("Timeout configuration",
                 "scanner" to configuration.get(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD),
                 "rpc" to configuration.get(HConstants.HBASE_RPC_READ_TIMEOUT_KEY),
@@ -54,14 +48,19 @@ data class HBaseConfiguration(
 
     @Bean
     fun hbaseConnection(): Connection {
+
         logger.info("Establishing connection with HBase")
+
         val configuration = hbaseConfiguration()
+
         logger.info("Hbase connection configuration",
                 HConstants.ZOOKEEPER_ZNODE_PARENT to configuration.get(HConstants.ZOOKEEPER_ZNODE_PARENT),
                 HConstants.ZOOKEEPER_QUORUM to configuration.get(HConstants.ZOOKEEPER_QUORUM),
-                "hbase.zookeeper.port" to "${configuration.get("hbase.zookeeper.port")}")
+                "hbase.zookeeper.port" to configuration.get("hbase.zookeeper.port"))
+
         val connection = ConnectionFactory.createConnection(HBaseConfiguration.create(configuration))
         addShutdownHook(connection)
+
         logger.info("Established connection with HBase")
 
         return connection
@@ -76,5 +75,18 @@ data class HBaseConfiguration(
             }
         })
         logger.info("Added HBase shutdown hook")
+    }
+
+    @Bean
+    fun columnFamily() = columnFamily
+
+    @Bean
+    fun columnQualifier() = columnQualifier
+
+    @Bean
+    fun regionReplication() = regionReplication
+
+    companion object {
+        val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
     }
 }

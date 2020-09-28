@@ -1,6 +1,7 @@
 package app.service.impl
 
 import app.configuration.CollectionS3Configuration
+import app.exception.TableExistsInHbase
 import app.service.HbaseTableCreator
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.*
@@ -8,35 +9,22 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
-
 @Service
 class HbaseTableCreatorImpl(
         private val hbaseConnection: Connection,
-        private val dataFamily: ByteArray,
-        private val dataQualifier: ByteArray,
+        private val columnFamily: String,
         private val hbaseRegionReplication: Int) : HbaseTableCreator {
 
     override fun createHbaseTableFromProps(collectionName: String, regionSize: Int) {
-        // Check if table already exists via ensureTable
-        // Create table if it doesn't using
+
         ensureNamespaceExists(collectionName)
-        createHbaseTable(collectionName, hbaseConnection)
 
+        if (checkIfTableExists(collectionName)) {
+            logger.error("Table already exists in hbase for collection", "collection_name" to collectionName)
+            throw TableExistsInHbase("Table already exists in hbase for collection: $collectionName")
+        } else {
+            createHbaseTable(collectionName)
         }
-    }
-
-    fun createHbaseTable(collectionName: String, hbaseConnection: Connection) {
-        logger.info("Creating table '$collectionName'.")
-        hbaseConnection.admin.createTable(HTableDescriptor(collectionName).apply {
-            addFamily(HColumnDescriptor(dataFamily)
-                    .apply {
-                        maxVersions = Int.MAX_VALUE
-                        minVersions = 1
-                        compressionType = Compression.Algorithm.GZ
-                        compactionCompressionType = Compression.Algorithm.GZ
-                    })
-            setRegionReplication(hbaseRegionReplication)
-        })
     }
 
     fun ensureNamespaceExists(tableName: String) {
@@ -45,14 +33,34 @@ class HbaseTableCreatorImpl(
 
         if (!namespaces.contains(namespace)) {
             try {
-                logger.info("Creating namespace '$namespace'.")
+                logger.info("Creating namespace", "namespace" to namespace)
                 hbaseConnection.admin.createNamespace(NamespaceDescriptor.create(namespace).build())
             } catch (e: NamespaceExistException) {
-                logger.info("'$namespace' already exists, probably created by another process")
+                logger.info("Namespace already exists, probably created by another process", "namespace" to namespace)
             } finally {
                 namespaces[namespace] = true
             }
         }
+    }
+
+    private fun createHbaseTable(collectionName: String) {
+        hbaseConnection.admin.createTable(HTableDescriptor.parseFrom(collectionName.toByteArray()).apply {
+            addFamily(HColumnDescriptor(columnFamily)
+                    .apply {
+                        maxVersions = Int.MAX_VALUE
+                        minVersions = 1
+                        compressionType = Compression.Algorithm.GZ
+                        compactionCompressionType = Compression.Algorithm.GZ
+                    })
+            regionReplication = hbaseRegionReplication
+        })
+    }
+
+    private fun checkIfTableExists(collectionName: String): Boolean {
+        val dataTableName = TableName.valueOf(collectionName)
+        val tableNameString = dataTableName.nameAsString
+
+        return tables.contains(tableNameString)
     }
 
     private val namespaces by lazy {
