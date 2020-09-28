@@ -32,7 +32,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val path: 
             val collectionSummary = getCollectionSummary(it.key, collectionList!!)
 
             logger.info("Got a collection summary",
-                    "key" to collectionSummary.key,
+                    "key" to collectionSummary.collectionName,
                     "size" to collectionSummary.size.toString())
 
             collectionSummaryList.add(collectionSummary)

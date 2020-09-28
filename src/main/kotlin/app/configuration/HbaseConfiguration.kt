@@ -20,6 +20,9 @@ data class HBaseConfiguration(
         var clientTimeoutMs: String? = "NOT_SET",
         var rpcReadTimeoutMs: String? = "NOT_SET",
         var retries: String? = "NOT_SET"
+        var dataFamily: String? = "cf"
+        var dataQualifer: String? = "record"
+        var regionReplication: Int = 3
 ) {
 
     companion object {

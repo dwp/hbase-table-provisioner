@@ -1,5 +1,5 @@
 package app.service
 
 interface TableProvisionerService {
-    fun provisionHbaseTable(a: Int, b: Int) : Int
+    fun provisionHbaseTable(regionSize: Int, regionServers: Int) : Int
 }
