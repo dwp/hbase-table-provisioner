@@ -15,7 +15,7 @@ class HbaseTableCreatorImpl(
         private val columnFamily: String,
         private val hbaseRegionReplication: Int) : HbaseTableCreator {
 
-    override fun createHbaseTableFromProps(collectionName: String, regionSize: Int) {
+    override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int) {
 
         ensureNamespaceExists(collectionName)
 
@@ -23,7 +23,7 @@ class HbaseTableCreatorImpl(
             logger.error("Table already exists in hbase for collection", "collection_name" to collectionName)
             throw TableExistsInHbase("Table already exists in hbase for collection: $collectionName")
         } else {
-            createHbaseTable(collectionName)
+            createHbaseTable(collectionName, regionCapacity)
         }
     }
 
@@ -43,7 +43,8 @@ class HbaseTableCreatorImpl(
         }
     }
 
-    private fun createHbaseTable(collectionName: String) {
+    private fun createHbaseTable(collectionName: String, regionCapacity: Int) {
+        logger.info("Creating Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
         hbaseConnection.admin.createTable(HTableDescriptor.parseFrom(collectionName.toByteArray()).apply {
             addFamily(HColumnDescriptor(columnFamily)
                     .apply {
@@ -54,6 +55,7 @@ class HbaseTableCreatorImpl(
                     })
             regionReplication = hbaseRegionReplication
         })
+        logger.info("Created Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
     }
 
     private fun checkIfTableExists(collectionName: String): Boolean {

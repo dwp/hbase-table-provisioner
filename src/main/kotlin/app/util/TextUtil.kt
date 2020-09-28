@@ -1,3 +1,3 @@
 package app.util
 
-fun getCollectionFromPath(path: String) = path.substringAfterLast('/')
+fun getCollectionFromPath(path: String) = path.substringAfterLast('/').replace('-', ':')

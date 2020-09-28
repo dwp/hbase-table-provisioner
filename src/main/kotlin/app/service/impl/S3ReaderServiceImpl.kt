@@ -38,6 +38,9 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val path: 
             collectionSummaryList.add(collectionSummary)
         }
 
+        logger.info("Gathered collections to be provisioned into Hbase",
+                "number_of_collections" to collectionSummaryList.size.toString())
+
         return collectionSummaryList
     }
 

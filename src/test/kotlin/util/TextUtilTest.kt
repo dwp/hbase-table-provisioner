@@ -9,8 +9,8 @@ class TextUtilTest {
     @Test
     fun shouldGetCollectionFromPath() {
 
-        val path = "s3://bucket/path/collection"
-        val expected = "collection"
+        val path = "s3://bucket/path/collection-name"
+        val expected = "collection:name"
 
         val result = getCollectionFromPath(path)
 

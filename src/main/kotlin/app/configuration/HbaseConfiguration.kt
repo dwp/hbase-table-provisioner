@@ -20,9 +20,11 @@ data class HBaseConfiguration(
         var clientTimeoutMs: String? = "NOT_SET",
         var rpcReadTimeoutMs: String? = "NOT_SET",
         var retries: String? = "NOT_SET",
-        var columnFamily: String? = "cf",
-        var columnQualifier: String? = "record",
-        var regionReplication: Int = 3
+        var columnFamily: String? = "NOT_SET",
+        var columnQualifier: String? = "NOT_SET",
+        var regionReplication: Int? = 3,
+        var regionTargetSize: Int? = 200,
+        var regionServerCount: Int? = 150
 ) {
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
@@ -43,6 +45,7 @@ data class HBaseConfiguration(
                 "client" to configuration.get(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT))
 
         logger.info("HBase Configuration loaded", "hbase_configuration" to configuration.toString())
+
         return configuration
     }
 
@@ -85,6 +88,12 @@ data class HBaseConfiguration(
 
     @Bean
     fun regionReplication() = regionReplication
+
+    @Bean
+    fun regionTargetSize() = regionTargetSize
+
+    @Bean
+    fun regionServerCount() = regionServerCount
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())

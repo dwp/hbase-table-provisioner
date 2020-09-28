@@ -3,9 +3,4 @@
  */
 package hbase.table.provisioner
 
-import app.App
-import org.junit.jupiter.api.Test
-
-class AppTest {
-
-}
+class AppTest
