@@ -2,6 +2,7 @@ package app.service.impl
 
 import app.domain.CollectionSummary
 import app.service.TableProvisionerService
+import app.util.regionKeySplitter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
@@ -38,7 +39,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             collectionSummaries.forEach {
                 launch {
                     val collectionRegionSize = calculateCollectionRegionSize(regionUnit, it.size)
-                    hbaseTableCreatorImpl.createHbaseTableFromProps(it.collectionName, collectionRegionSize)
+                    regionKeySplitter(collectionRegionSize)
+                    hbaseTableCreatorImpl.createHbaseTableFromProps(it.collectionName, collectionRegionSize, splitKeys)
                 }
             }
         }
