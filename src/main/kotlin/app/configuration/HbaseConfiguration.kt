@@ -22,7 +22,7 @@ data class HBaseConfiguration(
         var retries: String? = "NOT_SET",
         var columnFamily: String? = "NOT_SET",
         var columnQualifier: String? = "NOT_SET",
-        var regionReplication: Int? = 3,
+        var regionReplicationCount: Int? = 3,
         var regionTargetSize: Int? = 200,
         var regionServerCount: Int? = 150
 ) {
@@ -81,19 +81,19 @@ data class HBaseConfiguration(
     }
 
     @Bean
-    fun columnFamily() = columnFamily
+    fun columnFamily() = columnFamily!!
 
     @Bean
-    fun columnQualifier() = columnQualifier
+    fun columnQualifier() = columnQualifier!!
 
     @Bean
-    fun regionReplication() = regionReplication
+    fun regionReplicationCount() = regionReplicationCount!!
 
     @Bean
-    fun regionTargetSize() = regionTargetSize
+    fun regionTargetSize() = regionTargetSize!!
 
     @Bean
-    fun regionServerCount() = regionServerCount
+    fun regionServerCount() = regionServerCount!!
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())

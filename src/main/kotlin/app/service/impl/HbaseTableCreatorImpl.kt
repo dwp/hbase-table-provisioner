@@ -13,7 +13,7 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 class HbaseTableCreatorImpl(
         private val hbaseConnection: Connection,
         private val columnFamily: String,
-        private val hbaseRegionReplication: Int) : HbaseTableCreator {
+        private val regionReplicationCount: Int) : HbaseTableCreator {
 
     override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int) {
 
@@ -53,7 +53,7 @@ class HbaseTableCreatorImpl(
                         compressionType = Compression.Algorithm.GZ
                         compactionCompressionType = Compression.Algorithm.GZ
                     })
-            regionReplication = hbaseRegionReplication
+            regionReplication = regionReplicationCount
         })
         logger.info("Created Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
     }

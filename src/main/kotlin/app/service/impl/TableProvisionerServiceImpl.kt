@@ -2,6 +2,8 @@ package app.service.impl
 
 import app.domain.CollectionSummary
 import app.service.TableProvisionerService
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 import kotlin.math.ceil
@@ -18,14 +20,27 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
 
         val collectionSummaries = s3ReaderService.getCollectionSummaries()
 
+        if (collectionSummaries.isEmpty()) {
+            logger.info("No collections to be created in Hbase")
+            return
+        }
+
         val totalBytes = getTotalBytesForCollection(collectionSummaries)
 
         val totalRegions = regionTargetSize * regionServerCount
         val regionUnit = totalBytes / totalRegions
 
-        collectionSummaries.forEach {
-            val collectionRegionSize = calculateCollectionRegionSize(regionUnit, it.size)
-            hbaseTableCreatorImpl.createHbaseTableFromProps(it.collectionName, collectionRegionSize)
+        logger.info("Provisioning tables for collections",
+                "number_of_collections" to collectionSummaries.size.toString(),
+                "region_unit" to regionUnit.toString())
+
+        runBlocking {
+            collectionSummaries.forEach {
+                launch {
+                    val collectionRegionSize = calculateCollectionRegionSize(regionUnit, it.size)
+                    hbaseTableCreatorImpl.createHbaseTableFromProps(it.collectionName, collectionRegionSize)
+                }
+            }
         }
     }
 
