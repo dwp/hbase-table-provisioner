@@ -13,11 +13,13 @@ import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Service
-class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val path: String) : S3ReaderService {
+class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val basePath: String, val collectionPaths: List<String>, val filenameFormatRegex: String, val filenameFormatDataExtension: String) : S3ReaderService {
 
     override fun getCollectionSummaries(): List<CollectionSummary> {
+//        s3://bucket/basepath/collectionpath/collection.tables/
+        val collectionSummaries = getCollectionSummariesFromCollectionPaths()
 
-        val directoryOfCollectionFolders = getListOfObjectsInPath(path)
+        val directoryOfCollectionFolders = getListOfObjectsInPath(basePath)
 
         if (directoryOfCollectionFolders == null || directoryOfCollectionFolders.isEmpty()) {
             logger.error("No collection summaries to be viewed")
@@ -42,6 +44,14 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val path: 
                 "number_of_collections" to collectionSummaryList.size.toString())
 
         return collectionSummaryList
+    }
+
+    private fun getCollectionSummariesFromCollectionPaths(): Any {
+        collectionPaths.forEach { collectionPath ->
+            val collectionPathPrefix = "$basePath/$collectionPath"
+
+            getListOfObjectsInPath(collectionPathPrefix)
+        }
     }
 
     private fun getListOfObjectsInPath(objectPath: String): MutableList<S3ObjectSummary>? {

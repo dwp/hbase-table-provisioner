@@ -32,6 +32,8 @@ services:
       S3_BUCKET: "s3://bucket"
       S3_BASE_PATH: "/business/mongo"
       S3_COLLECTION_PATHS: "adb/2020-06-23"
+      S3_FILENAME_FORMAT_REGEX: "[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json"
+      S3_FILENAME_FORMAT_DATA_EXTENSION: "\\.gz\\.enc$"
 
   hbase:
     image: harisekhon/hbase:1.4
