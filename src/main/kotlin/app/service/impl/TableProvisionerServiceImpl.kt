@@ -2,6 +2,7 @@ package app.service.impl
 
 import app.domain.CollectionSummary
 import app.service.TableProvisionerService
+import app.util.calculateSplits
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
@@ -38,26 +39,13 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             collectionSummaries.forEach {
                 launch {
                     val collectionRegionSize = calculateCollectionRegionSize(regionUnit, it.size)
-                    val splits = splits(collectionRegionSize)
+                    val splits = calculateSplits(collectionRegionSize)
                     hbaseTableCreatorServiceImpl.createHbaseTableFromProps(it.collectionName, collectionRegionSize, splits)
                 }
             }
         }
     }
 
-    private fun splits(numberRequired: Int): List<ByteArray> {
-        val space = 256 * 256
-        val size = space / numberRequired
-        var remainder = space % numberRequired
-        val positions = mutableListOf<Int>()
-        var previous = 0
-        for (split in 0 until numberRequired - 1) {
-            val next = previous + size + (if (remainder-- > 0) 1 else 0)
-            positions.add(next)
-            previous = next
-        }
-        return positions.map {byteArrayOf((it / 256).toByte(), (it % 256).toByte())}
-    }
 
     private fun getTotalBytesForCollection(collectionSummaries: List<CollectionSummary>) = collectionSummaries.sumBy { it.size }
 
