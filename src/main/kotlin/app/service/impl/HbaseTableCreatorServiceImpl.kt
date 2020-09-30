@@ -2,7 +2,7 @@ package app.service.impl
 
 import app.configuration.CollectionS3Configuration
 import app.exception.TableExistsInHbase
-import app.service.HbaseTableCreator
+import app.service.HbaseTableCreatorService
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.*
 import org.apache.hadoop.hbase.io.compress.Compression
@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Service
-class HbaseTableCreatorImpl(
+class HbaseTableCreatorServiceImpl(
         private val hbaseConnection: Connection,
         private val columnFamily: String,
-        private val regionReplicationCount: Int) : HbaseTableCreator {
+        private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
-    override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int) {
+    override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
 
         ensureNamespaceExists(collectionName)
 
@@ -23,7 +23,7 @@ class HbaseTableCreatorImpl(
             logger.error("Table already exists in hbase for collection", "collection_name" to collectionName)
             throw TableExistsInHbase("Table already exists in hbase for collection: $collectionName")
         } else {
-            createHbaseTable(collectionName, regionCapacity)
+            createHbaseTable(collectionName, regionCapacity, splits)
         }
     }
 
@@ -43,8 +43,10 @@ class HbaseTableCreatorImpl(
         }
     }
 
-    private fun createHbaseTable(collectionName: String, regionCapacity: Int) {
+    private fun createHbaseTable(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+
         logger.info("Creating Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
+
         hbaseConnection.admin.createTable(HTableDescriptor.parseFrom(collectionName.toByteArray()).apply {
             addFamily(HColumnDescriptor(columnFamily)
                     .apply {
@@ -54,7 +56,8 @@ class HbaseTableCreatorImpl(
                         compactionCompressionType = Compression.Algorithm.GZ
                     })
             regionReplication = regionReplicationCount
-        })
+        }, splits.toTypedArray())
+
         logger.info("Created Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
     }
 

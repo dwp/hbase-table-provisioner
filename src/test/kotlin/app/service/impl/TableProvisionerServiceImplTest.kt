@@ -3,7 +3,6 @@ package app.service.impl
 import app.domain.CollectionSummary
 import com.nhaarman.mockitokotlin2.*
 import org.junit.jupiter.api.Test
-import kotlin.time.ExperimentalTime
 
 class TableProvisionerServiceImplTest {
 
@@ -18,7 +17,7 @@ class TableProvisionerServiceImplTest {
             } doReturn collectionSummaries
         }
 
-        val hbaseTableCreatorMock = mock<HbaseTableCreatorImpl>()
+        val hbaseTableCreatorMock = mock<HbaseTableCreatorServiceImpl>()
 
         val regionTargetSize = 1
         val regionServerCount = 3
@@ -40,7 +39,7 @@ class TableProvisionerServiceImplTest {
             } doReturn mutableListOf()
         }
 
-        val hbaseTableCreatorMock = mock<HbaseTableCreatorImpl>()
+        val hbaseTableCreatorMock = mock<HbaseTableCreatorServiceImpl>()
 
         val regionTargetSize = 1
         val regionServerCount = 3
