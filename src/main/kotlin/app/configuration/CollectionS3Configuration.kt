@@ -11,11 +11,12 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 
 @Configuration
-@ConfigurationProperties(prefix = "collection.s3")
+@ConfigurationProperties(prefix = "s3")
 data class CollectionS3Configuration(
-    var bucket: String? = "NOT_SET",
-    var path: String? = "NOT_SET",
-    var clientRegion: String? = "NOT_SENT"
+        var bucket: String? = "NOT_SET",
+        var basePath: String? = "NOT_SET",
+        var collectionPaths: String? = "NOT_SET",
+        var clientRegion: String? = "NOT_SET"
 ) {
 
     @Bean
@@ -36,7 +37,10 @@ data class CollectionS3Configuration(
     fun bucket() = bucket
 
     @Bean
-    fun path() = path
+    fun basePath() = basePath
+
+    @Bean
+    fun collectPaths() = collectionPaths.split(",")
 
     companion object {
         val logger = DataworksLogger.getLogger(CollectionS3Configuration::class.toString())

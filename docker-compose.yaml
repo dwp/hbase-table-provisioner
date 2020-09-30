@@ -29,8 +29,9 @@ services:
       HBASE_REGION_REPLICATION_COUNT: 3
       HBASE_REGION_TARGET_SIZE: "200"
       HBASE_REGION_SERVER_COUNT: "150"
-      COLLECTION_S3_BUCKET: "s3://bucket"
-      COLLECTION_S3_PATH: "/path/to/collections"
+      S3_BUCKET: "s3://bucket"
+      S3_BASE_PATH: "/business/mongo"
+      S3_COLLECTION_PATHS: "adb/2020-06-23"
 
   hbase:
     image: harisekhon/hbase:1.4
