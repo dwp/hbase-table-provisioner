@@ -16,6 +16,7 @@ class HbaseTableCreatorServiceImpl(
         private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
     override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+//        accepted-data.UpdateMongoLock_acceptedDataService CHANGE TO accepted-data:UpdateMongoLock_acceptedDataService
 
         ensureNamespaceExists(collectionName)
 
