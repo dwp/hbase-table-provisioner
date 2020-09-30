@@ -1,6 +1,8 @@
 package app.service.impl
 
 import app.domain.CollectionSummary
+import app.domain.S3ObjectSummaryPair
+import app.helper.impl.S3Helper
 import app.service.S3ReaderService
 import app.util.getCollectionFromPath
 import com.amazonaws.AmazonServiceException
@@ -13,7 +15,14 @@ import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Service
-class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val basePath: String, val collectionPaths: List<String>, val filenameFormatRegex: String, val filenameFormatDataExtension: String) : S3ReaderService {
+class S3ReaderServiceImpl(val s3Client: AmazonS3,
+                          val bucket: String,
+                          val basePath: String,
+                          val collectionPaths: List<String>,
+                          val filenameFormatRegexPattern: String,
+                          val filenameFormatDataExtensionPattern: String,
+                          val keyPairGeneratorService: KeyPairGeneratorImpl,
+                          val s3Helper: S3Helper) : S3ReaderService {
 
     override fun getCollectionSummaries(): List<CollectionSummary> {
 //        s3://bucket/basepath/collectionpath/collection.tables/
@@ -54,34 +63,51 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3, val bucket: String, val basePa
         }
     }
 
-    private fun getListOfObjectsInPath(objectPath: String): MutableList<S3ObjectSummary>? {
+    private fun getListOfObjectsInPath(objectPath: String): List<S3ObjectSummaryPair> {
         try {
-            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(objectPath).withMaxKeys(1000)
-            var result: ListObjectsV2Result
+            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(objectPath).withMaxKeys(1000).with
+
+            var results: ListObjectsV2Result?
+            val objectSummaries: MutableList<S3ObjectSummary> = mutableListOf()
 
             do {
-                result = s3Client.listObjectsV2(request)
-                for (objectSummary in result.objectSummaries) {
-                    logger.info("Retrieved S3 objects",
-                            "key" to objectSummary.key,
-                            "size" to objectSummary.size.toString())
-                }
-                // If there are more than maxKeys keys in the bucket, get a continuation token
-                // and list the next objects.
-                val token = result.nextContinuationToken
-                logger.debug("Paginated results, using continuation token to fetch more results",
-                        "token" to token.toString())
-                request.continuationToken = token
+                logger.info("Getting paginated results", "s3_location", "s3://$bucketName/$fullPrefix")
+                results = s3Helper.listObjectsV2Result(s3Client, request, objectSummaries)
+                request.continuationToken = results?.nextContinuationToken
+            } while (results != null && results.isTruncated)
 
-            } while (result.isTruncated)
+            val objectSummaryKeyMap = objectSummaries.map { it.key to it }.toMap()
+            val keyPairs =
+                    keyPairGeneratorService.generateKeyPairs(objectSummaries.map { it.key },
+                            filenameFormatRegexPattern.toRegex(),
+                            filenameFormatDataExtensionPattern.toRegex())
 
-            return result.objectSummaries
+            val pairs = keyPairs
+                    .map {
+                        val obj = objectSummaryKeyMap[it.dataKey]
+                        S3ObjectSummaryPair(obj)
+                    }
+                    .filter { pair -> pair.data != null }
+                    .filter { pair ->
+                        val data = pair.data!!
+                        if (data.size == 0L) {
+                            logger.info("Ignoring zero-byte pair", "data_key", data.key)
+                            logger.info("Processed records in file", "records_processed", "0", "file_name", data.key)
+                        }
+
+                        data.size > 0
+                    }
+
+            logger.info("Found valid key pairs", "s3_keypairs_found", "${pairs.size}", "s3_location", "s3://$bucket/$basePath")
+            return pairs
 
         } catch (e: AmazonServiceException) {
             logger.error("Amazon S3 failed to process the request", "error" to e.localizedMessage)
         } catch (e: SdkClientException) {
             logger.error("Amazon S3 couldn't be reached or the response wasn't able to be parsed", "error" to e.localizedMessage)
         }
+
+
 
         return mutableListOf()
     }
