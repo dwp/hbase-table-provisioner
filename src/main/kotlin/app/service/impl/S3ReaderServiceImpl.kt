@@ -26,6 +26,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
     override fun getCollectionSummaries(): List<CollectionSummary> {
 //        s3://bucket/basepath/collectionpath/collection.tables/
+
         val collectionSummaries = getCollectionSummariesFromCollectionPaths()
 
         val directoryOfCollectionFolders = getListOfObjectsInPath(basePath)
@@ -56,22 +57,25 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     }
 
     private fun getCollectionSummariesFromCollectionPaths(): Any {
+
+        val collectionSummaryList = mutableListOf<CollectionSummary>()
         collectionPaths.forEach { collectionPath ->
             val collectionPathPrefix = "$basePath/$collectionPath"
 
-            getListOfObjectsInPath(collectionPathPrefix)
+            val collectionSummaries = getListOfObjectsInPath(collectionPathPrefix)
+//            collectionSummaryList.addAll(getCollectionSummary())
         }
     }
 
     private fun getListOfObjectsInPath(objectPath: String): List<S3ObjectSummaryPair> {
         try {
-            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(objectPath).withMaxKeys(1000).with
+            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(objectPath).withMaxKeys(1000)
 
             var results: ListObjectsV2Result?
             val objectSummaries: MutableList<S3ObjectSummary> = mutableListOf()
 
             do {
-                logger.info("Getting paginated results", "s3_location", "s3://$bucketName/$fullPrefix")
+//                logger.info("Getting paginated results", "s3_location" to "s3://$bucketName/$fullPrefix")
                 results = s3Helper.listObjectsV2Result(s3Client, request, objectSummaries)
                 request.continuationToken = results?.nextContinuationToken
             } while (results != null && results.isTruncated)
@@ -91,14 +95,14 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
                     .filter { pair ->
                         val data = pair.data!!
                         if (data.size == 0L) {
-                            logger.info("Ignoring zero-byte pair", "data_key", data.key)
-                            logger.info("Processed records in file", "records_processed", "0", "file_name", data.key)
+                            logger.info("Ignoring zero-byte pair", "data_key" to data.key)
+                            logger.info("Processed records in file", "records_processed" to "0", "file_name" to data.key)
                         }
 
                         data.size > 0
                     }
 
-            logger.info("Found valid key pairs", "s3_keypairs_found", "${pairs.size}", "s3_location", "s3://$bucket/$basePath")
+            logger.info("Found valid key pairs", "s3_keypairs_found" to "${pairs.size}", "s3_location" to "s3://$bucket/$basePath")
             return pairs
 
         } catch (e: AmazonServiceException) {
@@ -106,8 +110,6 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         } catch (e: SdkClientException) {
             logger.error("Amazon S3 couldn't be reached or the response wasn't able to be parsed", "error" to e.localizedMessage)
         }
-
-
 
         return mutableListOf()
     }
