@@ -8,6 +8,9 @@ on:
       - README.md
       - LICENSE
 
+env:
+  IMAGE_NAME: dwpdigital/hbase-table-provisioner
+
 jobs:
   get-publish-version:
     runs-on: ubuntu-latest
