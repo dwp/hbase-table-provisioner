@@ -16,7 +16,7 @@ data class CollectionS3Configuration(
         var bucket: String? = "NOT_SET",
         var basePath: String? = "NOT_SET",
         var collectionPaths: String? = "NOT_SET",
-        var clientRegion: String? = "NOT_SET"
+        var clientRegion: String? = "NOT_SET",
         var filenameFormatRegexPattern: String? = "NOT_SET",
         var filenameFormatDataExtensionPattern: String? = "NOT_SET",
         var collectionNameRegexPattern: String? = "NOT_SET"
@@ -43,7 +43,7 @@ data class CollectionS3Configuration(
     fun basePath() = basePath
 
     @Bean
-    fun collectionPaths() = collectionPaths.split(",")
+    fun collectionPaths() = collectionPaths?.split(",")
 
     @Bean
     fun filenameFormatRegexPattern() = filenameFormatRegexPattern

@@ -2,7 +2,7 @@ package app.util
 
 import app.service.impl.S3ReaderServiceImpl
 
-private const val filenamePattern = """(?<database>[\w-]+)\.(?<collection>[[\w-]+]+)\.(?<filenumber>[0-9]+)\.json\.gz\.enc$"""
+private const val filenamePattern = """(?<database>[\w-]+)\.(?<collection>[\w-]+)"""
 private val filenameRegex = Regex(filenamePattern, RegexOption.IGNORE_CASE)
 private val COALESCED_COLLECTION = Regex("-(archived|eight|eighteen|eleven|fifteen|five|four|fourteen|nine|nineteen|one|seven|seventeen|six|sixteen|ten|thirteen|thirty|thirtyone|thirtytwo|three|twelve|twenty|twentyeight|twentyfive|twentyfour|twentynine|twentyone|twentyseven|twentysix|twentythree|twentytwo|two)$")
 
@@ -12,15 +12,15 @@ fun coalescedCollection(topicName: String): String {
     val groups = matchResult!!.groups
     val database = groups[1]!!.value // can assert nun-null as it matched on the regex
     val uncoalescedCollection = groups[2]!!.value
-    var collection = coalesced(uncoalescedCollection)
+    val collection = coalesced(uncoalescedCollection)
 
     val originalTableName = "$database:$collection".replace("-", "_")
-    val tableName = coalescedArchive(originalTableName)
+    var tableName = coalescedArchive(originalTableName)
     if (originalTableName != tableName) {
-        collection = tableName.replace(Regex("""^[^:]+:"""), "")
+        tableName = tableName.replace(Regex("""^[^:]+:"""), "")
     }
 
-    return collection
+    return tableName
 }
 
 private fun coalesced(collection: String): String {

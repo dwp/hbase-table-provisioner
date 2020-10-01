@@ -89,6 +89,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             val key = collection.key
 
             Regex(collectionNameRegexPattern).find(key)?.let {
+
                 val (topicName) = it.destructured
                 val coalesced = coalescedCollection(topicName)
 
