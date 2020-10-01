@@ -19,4 +19,4 @@ RUN useradd -g $GROUP $USER
 
 USER $USER
 
-ENTRYPOINT ["sh", "-c", "sleep 600"]
+ENTRYPOINT ["sh", "-c", "whoami"]
