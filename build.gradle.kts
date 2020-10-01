@@ -6,18 +6,20 @@ plugins {
     kotlin("jvm") version "1.4.0"
     kotlin("plugin.spring") version "1.3.72"
 }
+
 group = "app"
 version = "0.0.1"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
+
 repositories {
     mavenCentral()
     jcenter()
     maven(url = "https://jitpack.io")
 }
+
 dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.boot:spring-boot-starter")
-//	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.3.9")
@@ -39,18 +41,22 @@ dependencies {
     }
     testImplementation("org.apache.hbase:hbase-client:1.4.13")
 }
+
 configurations.all {
     exclude(group = "org.slf4j", module = "slf4j-log4j12")
 }
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "1.8"
     }
 }
+
 sourceSets {
     create("integration") {
         java.srcDir(file("src/integration/kotlin"))
@@ -63,6 +69,7 @@ sourceSets {
         runtimeClasspath += output + compileClasspath
     }
 }
+
 tasks.register<Test>("unit") {
     description = "Runs the unit tests"
     group = "verification"
@@ -77,5 +84,23 @@ tasks.register<Test>("unit") {
         showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED, org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED, org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)
+    }
+}
+
+tasks.register<Test>("hbase-table-provisioner-integration-test") {
+    description = "Runs the hbase table provisioner integration tests"
+    group = "verification"
+    testClassesDirs = sourceSets["integration"].output.classesDirs
+    classpath = sourceSets["integration"].runtimeClasspath
+    filter {
+        includeTestsMatching("HbaseTableProvisionerIntegrationTest*")
+    }
+
+    setEnvironment(System.getenv())
+
+    useJUnitPlatform { }
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED, org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED, org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED, org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT)
     }
 }

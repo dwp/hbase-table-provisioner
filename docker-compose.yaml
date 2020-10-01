@@ -2,8 +2,8 @@ version: '3'
 
 services:
 
-  hbase_table_provisioner:
-    image: hbase_table_provisioner:latest
+  hbase-table-provisioner:
+    image: hbase-table-provisioner:latest
     build: ./
     container_name: hbase-table-provisioner
     depends_on:
@@ -45,13 +45,13 @@ services:
     container_name: hbase
 
   htp-integration-test:
-    image: htp-integration:latest
-    container_name: htp-integration-test
+    image: hbase-table-provisioner-integration-test:latest
+    container_name: hbase-table-provisioner-integration-test
     build:
       dockerfile: docker/integration/Dockerfile
       context: .
     depends_on:
-      - hbase_table_provisioner
+      - hbase-table-provisioner
     command: "gradle --rerun-tasks integration"
     environment:
       CONTAINER_VERSION: "latest"
@@ -69,6 +69,35 @@ services:
       HBASE_OPERATION_TIMEOUT_MILLISECONDS": "1800"
       HBASE_PAUSE_MILLISECONDS: "50"
       HBASE_RETRIES": "3"
+
+  s3:
+    image: localstack/localstack
+    ports:
+      - '4563-4584:4563-4584'
+      - '8055:8080'
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/data/s3
+    container_name: s3
+
+  s3-init:
+    image: s3-init
+    build:
+      context: docker/s3-init
+    container_name: s3-init
+    depends_on:
+      - s3
+    environment:
+      - S3_SERVICE_ENDPOINT=http://s3:4572
+      - AWS_REGION=eu-west-2
+      - AWS_ACCESS_KEY_ID=aws-access-key
+      - AWS_SECRET_ACCESS_KEY=aws-secret-access-key
+      - S3_BUCKET=hbase-provisioner
+      - S3_PREFIX=test/prefix/
+      - S3_PAGING_PREFIX=test/prefix
+      - S3_MANIFEST_BUCKET=manifestbucket
+      - CREATE_PAGINATED_DATA=${CREATE_PAGINATED_DATA:-no}
 
 volumes:
   shared-volume:
