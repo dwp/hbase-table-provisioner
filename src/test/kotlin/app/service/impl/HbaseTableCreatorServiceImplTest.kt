@@ -39,6 +39,7 @@
 //        }
 //
 //        val service = HbaseTableCreatorServiceImpl(connection, columnFamily, regionReplicationCount)
+////        Actual input: collectionName: String, regionCapacity: Int, splits: List<ByteArray>
 //
 //        service.createHbaseTableFromProps(tableName, regionCapacity)
 //

@@ -54,7 +54,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
             } while (results != null && results.isTruncated)
 
-            val filteredObjects = filterResultsForDataFilesOnly(objectSummaries, filenameFormatRegexPattern, filenameFormatDataExtensionPattern)
+            val filteredObjects = filterResultsForDataFilesOnly(objectSummaries, filenameFormatRegexPattern)
 
             return deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects)
         } catch (e: Exception) {
@@ -63,15 +63,14 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         }
     }
 
-    private fun filterResultsForDataFilesOnly(s3Results: MutableList<S3ObjectSummary>, filenameFormatRegexPattern: String, filenameFormatDataExtensionPattern: String): List<S3ObjectSummary> {
+    private fun filterResultsForDataFilesOnly(s3Results: MutableList<S3ObjectSummary>, filenameFormatRegexPattern: String): List<S3ObjectSummary> {
 
         logger.info("Filtering over collection results from S3")
 
         val matchedConditionObjects = mutableListOf<S3ObjectSummary>()
-        val fullFilenameFormatRegex = "$filenameFormatRegexPattern$filenameFormatDataExtensionPattern"
 
         s3Results.forEach { collectionObject ->
-            if (fullFilenameFormatRegex.toRegex().containsMatchIn(collectionObject.key)) {
+            if (filenameFormatRegexPattern.toRegex().containsMatchIn(collectionObject.key)) {
                 matchedConditionObjects.add(collectionObject)
             }
         }

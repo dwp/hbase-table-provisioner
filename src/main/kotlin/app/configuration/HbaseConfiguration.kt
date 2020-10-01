@@ -22,6 +22,7 @@ data class HBaseConfiguration(
         var retries: String? = "NOT_SET",
         var columnFamily: String? = "NOT_SET",
         var columnQualifier: String? = "NOT_SET",
+        var coalesceCollectionRegexPattern: String? = "NOT_SET",
         var regionReplicationCount: Int? = 3,
         var regionTargetSize: Int? = 200,
         var regionServerCount: Int? = 150
