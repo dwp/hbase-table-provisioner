@@ -3,6 +3,7 @@ package app.service.impl
 import app.configuration.CollectionS3Configuration
 import app.exception.TableExistsInHbase
 import app.service.HbaseTableCreatorService
+import app.util.topicNameTableMatcher
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.*
 import org.apache.hadoop.hbase.io.compress.Compression
@@ -15,22 +16,20 @@ class HbaseTableCreatorServiceImpl(
         private val columnFamily: String,
         private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
-    override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
-//        accepted-data.UpdateMongoLock_acceptedDataService CHANGE TO accepted-data:UpdateMongoLock_acceptedDataService
+    override fun createHbaseTableFromProps(tableName: String, regionCapacity: Int, splits: List<ByteArray>) {
+//        accepted-data.UpdateMongoLock_acceptedDataService CHANGE TO accepted_data:UpdateMongoLock_acceptedDataService
 
-        ensureNamespaceExists(collectionName)
+        ensureNamespaceExists(tableName)
 
-        if (checkIfTableExists(collectionName)) {
-            logger.error("Table already exists in hbase for collection", "collection_name" to collectionName)
-            throw TableExistsInHbase("Table already exists in hbase for collection: $collectionName")
+        if (checkIfTableExists(tableName)) {
+            logger.error("Table already exists in hbase for collection", "table_name" to tableName)
+            throw TableExistsInHbase("Table already exists in hbase for collection: $tableName")
         } else {
-            createHbaseTable(collectionName, regionCapacity, splits)
+            createHbaseTable(tableName, regionCapacity, splits)
         }
     }
 
-    fun ensureNamespaceExists(tableName: String) {
-        val dataTableName = TableName.valueOf(tableName)
-        val namespace = dataTableName.namespaceAsString
+    fun ensureNamespaceExists(namespace: String) {
 
         if (!namespaces.contains(namespace)) {
             try {

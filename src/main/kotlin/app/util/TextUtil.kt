@@ -1,3 +1,5 @@
 package app.util
 
-fun getCollectionFromPath(path: String) = path.substringAfterLast('/').replace('-', ':')
+fun topicNameTableMatcher(collectionName: String) = collectionName.split('.')
+
+fun convertCollectionNameToHbaseName(collectionName: String) = collectionName.replace('.', ':')

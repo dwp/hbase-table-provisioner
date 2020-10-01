@@ -2,6 +2,7 @@ package app.service.impl
 
 import app.helper.impl.S3HelperImpl
 import app.service.S3ReaderService
+import app.util.coalescedCollection
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.ListObjectsV2Request
 import com.amazonaws.services.s3.model.ListObjectsV2Result
@@ -89,11 +90,12 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
             Regex(collectionNameRegexPattern).find(key)?.let {
                 val (topicName) = it.destructured
+                val coalesced = coalescedCollection(topicName)
 
-                if (topicName in topicByteSizeMap) {
-                    topicByteSizeMap[topicName] = topicByteSizeMap[topicName]!! + collection.size
+                if (coalesced in topicByteSizeMap) {
+                    topicByteSizeMap[coalesced] = topicByteSizeMap[coalesced]!! + collection.size
                 } else {
-                    topicByteSizeMap[topicName] = collection.size
+                    topicByteSizeMap[coalesced] = collection.size
                 }
             }
         }
@@ -104,6 +106,6 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     }
 
     companion object {
-        val logger = DataworksLogger.getLogger(S3ReaderServiceImpl::class.toString())
+       val logger = DataworksLogger.getLogger(S3ReaderServiceImpl::class.toString())
     }
 }
