@@ -18,7 +18,8 @@ data class CollectionS3Configuration(
         var collectionPaths: String? = "NOT_SET",
         var clientRegion: String? = "NOT_SET"
         var filenameFormatRegexPattern: String? = "NOT_SET",
-        var filenameFormatDataExtensionPattern: String? = "NOT_SET"
+        var filenameFormatDataExtensionPattern: String? = "NOT_SET",
+        var collectionNameRegexPattern: String? = "NOT_SET"
 ) {
 
     @Bean
@@ -49,6 +50,9 @@ data class CollectionS3Configuration(
 
     @Bean
     fun filenameFormatDataExtensionPattern() = filenameFormatDataExtensionPattern
+
+    @Bean
+    fun collectionNameRegexPattern() = collectionNameRegexPattern
 
     companion object {
         val logger = DataworksLogger.getLogger(CollectionS3Configuration::class.toString())

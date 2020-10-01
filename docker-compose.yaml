@@ -34,6 +34,7 @@ services:
       S3_COLLECTION_PATHS: "adb/2020-06-23"
       S3_FILENAME_FORMAT_REGEX: "[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json"
       S3_FILENAME_FORMAT_DATA_EXTENSION: "\\.gz\\.enc$"
+      S3_COLLECTION_NAME_REGEX_PATTERN: "([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc"
 
   hbase:
     image: harisekhon/hbase:1.4

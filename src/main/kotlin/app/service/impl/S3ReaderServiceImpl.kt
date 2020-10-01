@@ -1,7 +1,7 @@
 package app.service.impl
 
 import app.domain.CollectionSummary
-import app.helper.impl.S3Helper
+import app.helper.S3HelperService
 import app.service.S3ReaderService
 import app.util.getCollectionFromPath
 import com.amazonaws.services.s3.AmazonS3
@@ -15,11 +15,11 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 class S3ReaderServiceImpl(val s3Client: AmazonS3,
                           val bucket: String,
                           val basePath: String,
+                          val s3Helper: S3Helper,
                           val sourceDatabasePaths: List<String>,
                           val filenameFormatRegexPattern: String,
                           val filenameFormatDataExtensionPattern: String,
-                          val keyPairGeneratorService: KeyPairGeneratorImpl,
-                          val s3Helper: S3Helper) : S3ReaderService {
+                          val collectionNameRegexPattern: String) : S3ReaderService {
 
     override fun getCollectionSummaries(): MutableMap<String, Long> {
 //        s3://bucket/basepath/sourceDbPath/DateIncluded/collection.tables.file
@@ -80,7 +80,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         filteredObjects.forEach { collection ->
             val key = collection.key
 
-            Regex("""([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc""").find(key)?.let {
+            Regex(collectionNameRegexPattern).find(key)?.let {
                 val (topicName) = it.destructured
 
                 if (topicName in topicByteSizeMap) {
