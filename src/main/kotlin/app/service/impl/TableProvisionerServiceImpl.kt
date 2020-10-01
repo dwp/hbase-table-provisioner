@@ -1,6 +1,5 @@
 package app.service.impl
 
-import app.domain.CollectionSummary
 import app.service.TableProvisionerService
 import app.util.calculateSplits
 import kotlinx.coroutines.launch
