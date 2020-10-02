@@ -88,7 +88,7 @@ services:
       S3_BACKOFF_MULTIPLIER: 2
 
   aws-s3:
-    image: localstack/localstack-full
+    image: localstack/localstack
     ports:
       - '4563-4584:4563-4584'
       - '8055:8080'
