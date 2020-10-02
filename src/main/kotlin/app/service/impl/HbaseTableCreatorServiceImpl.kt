@@ -3,7 +3,6 @@ package app.service.impl
 import app.configuration.CollectionS3Configuration
 import app.exception.TableExistsInHbase
 import app.service.HbaseTableCreatorService
-import app.util.topicNameTableMatcher
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.*
 import org.apache.hadoop.hbase.io.compress.Compression
@@ -16,19 +15,18 @@ class HbaseTableCreatorServiceImpl(
         private val columnFamily: String,
         private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
-    override fun createHbaseTableFromProps(tableName: String, regionCapacity: Int, splits: List<ByteArray>) {
-        ensureNamespaceExists(tableName)
+    override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+        ensureNamespaceExists(collectionName)
 
-        if (checkIfTableExists(tableName)) {
-            logger.error("Table already exists in hbase for collection", "table_name" to tableName)
-            throw TableExistsInHbase("Table already exists in hbase for collection: $tableName")
+        if (checkIfTableExists(collectionName)) {
+            logger.error("Table already exists in hbase for collection", "table_name" to collectionName)
+            throw TableExistsInHbase("Table already exists in hbase for collection: $collectionName")
         } else {
-            createHbaseTable(tableName, regionCapacity, splits)
+            createHbaseTable(collectionName, regionCapacity, splits)
         }
     }
 
     fun ensureNamespaceExists(namespace: String) {
-
         if (!namespaces.contains(namespace)) {
             try {
                 logger.info("Creating namespace", "namespace" to namespace)
@@ -43,9 +41,14 @@ class HbaseTableCreatorServiceImpl(
 
     private fun createHbaseTable(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
 
-        logger.info("Creating Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
+        logger.info("Creating Hbase table",
+                "table_name" to collectionName,
+                "region_capacity" to regionCapacity.toString(),
+                "splits" to splits.toString())
 
-        hbaseConnection.admin.createTable(HTableDescriptor.parseFrom(collectionName.toByteArray()).apply {
+        val hbaseTableName = hbaseTableName(collectionName)
+
+        val hbaseTable = HTableDescriptor(hbaseTableName).apply {
             addFamily(HColumnDescriptor(columnFamily)
                     .apply {
                         maxVersions = Int.MAX_VALUE
@@ -54,7 +57,9 @@ class HbaseTableCreatorServiceImpl(
                         compactionCompressionType = Compression.Algorithm.GZ
                     })
             regionReplication = regionReplicationCount
-        }, splits.toTypedArray())
+        }
+
+        hbaseConnection.admin.createTable(hbaseTable, splits.toTypedArray())
 
         logger.info("Created Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
     }
@@ -86,6 +91,8 @@ class HbaseTableCreatorServiceImpl(
 
         names
     }
+
+    private fun hbaseTableName(name: String) = TableName.valueOf(name)
 
     companion object {
         val logger = DataworksLogger.getLogger(CollectionS3Configuration::class.toString())

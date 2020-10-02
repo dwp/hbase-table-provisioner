@@ -2,7 +2,7 @@ package app.service.impl
 
 import app.helper.impl.S3HelperImpl
 import app.service.S3ReaderService
-import app.util.coalescedCollection
+import app.util.CoalescingUtil
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.ListObjectsV2Request
 import com.amazonaws.services.s3.model.ListObjectsV2Result
@@ -80,7 +80,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
     private fun deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects: List<S3ObjectSummary>): MutableMap<String, Long> {
 
-        logger.info("Removing duplicate collection results")
+        logger.info("Removing duplicate collection results", "collection_size" to filteredObjects.size.toString())
 
         val topicByteSizeMap = mutableMapOf<String, Long>()
 
@@ -90,7 +90,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             Regex(collectionNameRegexPattern).find(key)?.let {
 
                 val (topicName) = it.destructured
-                val coalesced = coalescedCollection(topicName)
+                val coalesced = CoalescingUtil().coalescedCollection(topicName)
 
                 if (coalesced in topicByteSizeMap) {
                     topicByteSizeMap[coalesced] = topicByteSizeMap[coalesced]!! + collection.size
@@ -100,7 +100,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             }
         }
 
-        logger.info("Removed duplicates and calculated byte size", "total_size" to topicByteSizeMap.size.toString())
+        logger.info("Removed duplicates and calculated byte size", "deduplicated_collection_size" to topicByteSizeMap.size.toString())
 
         return topicByteSizeMap
     }
