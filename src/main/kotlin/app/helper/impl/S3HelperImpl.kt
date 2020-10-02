@@ -10,11 +10,13 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 
 @Component
-class S3HelperImpl : S3Helper {
+class S3HelperImpl(private val maxAttempts: Int,
+                   private val initialBackoffMillis: Long,
+                   private val backoffMultiplier: Double) : S3Helper {
 
-    @Retryable(value = [S3Exception::class],
-            maxAttempts = maxAttempts,
-            backoff = Backoff(delay = initialBackoffMillis, multiplier = backoffMultiplier))
+//    @Retryable(value = [S3Exception::class],
+//            maxAttempts = maxAttempts,
+//            backoff = Backoff(delay = initialBackoffMillis, multiplier = backoffMultiplier))
     @Throws(S3Exception::class)
     override fun getListOfS3ObjectsResult(awsS3Client: AmazonS3, request: ListObjectsV2Request): ListObjectsV2Result? {
         try {
@@ -22,11 +24,5 @@ class S3HelperImpl : S3Helper {
         } catch (ex: Exception) {
             throw S3Exception("Error retrieving object summary from S3")
         }
-    }
-
-    companion object {
-        const val maxAttempts = 5
-        const val initialBackoffMillis = 1000L
-        const val backoffMultiplier = 2.0
     }
 }
