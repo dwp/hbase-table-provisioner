@@ -13,9 +13,9 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 @ConfigurationProperties(prefix = "s3")
 class S3Configuration(
         var clientRegion: String? = "NOT_SET",
-        var maxAttempts: Int? = 5,
-        var initialBackoffMillis: Long? = 1000L,
-        var backoffMultiplier: Long? = 2) {
+        var maxAttempts: String? = "NOT_SET",
+        var initialBackoffMillis: String? = "NOT_SET",
+        var backoffMultiplier: String? = "NOT_SET") {
 
 
     @Bean
@@ -33,13 +33,13 @@ class S3Configuration(
     }
 
     @Bean
-    fun maxAttempts() = maxAttempts!!
+    fun maxAttempts() = maxAttempts?.toIntOrNull()
 
     @Bean
-    fun initialBackoffMillis() = initialBackoffMillis!!
+    fun initialBackoffMillis() = initialBackoffMillis?.toLongOrNull()
 
     @Bean
-    fun backoffMultiplier() = backoffMultiplier!!
+    fun backoffMultiplier() = backoffMultiplier?.toLongOrNull()
 
     companion object {
         val logger = DataworksLogger.getLogger(S3Configuration::class.toString())

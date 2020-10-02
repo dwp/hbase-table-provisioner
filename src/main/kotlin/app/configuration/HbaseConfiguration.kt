@@ -23,9 +23,9 @@ data class HBaseConfiguration(
         var columnFamily: String? = "NOT_SET",
         var columnQualifier: String? = "NOT_SET",
         var coalesceCollectionRegexPattern: String? = "NOT_SET",
-        var regionReplicationCount: Int? = 3,
-        var regionTargetSize: Int? = 200,
-        var regionServerCount: Int? = 150
+        var regionReplicationCount: String? = "NOT_SET",
+        var regionTargetSize: String? = "NOT_SET",
+        var regionServerCount: String? = "NOT_SET"
 ) {
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
@@ -88,13 +88,13 @@ data class HBaseConfiguration(
     fun columnQualifier() = columnQualifier!!
 
     @Bean
-    fun regionReplicationCount() = regionReplicationCount!!
+    fun regionReplicationCount() = regionReplicationCount!!.toIntOrNull()
 
     @Bean
-    fun regionTargetSize() = regionTargetSize!!
+    fun regionTargetSize() = regionTargetSize!!.toIntOrNull()
 
     @Bean
-    fun regionServerCount() = regionServerCount!!
+    fun regionServerCount() = regionServerCount!!.toIntOrNull()
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
