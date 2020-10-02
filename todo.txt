@@ -1,0 +1,11 @@
+
+
+Update App.kt run command
+Get to boot in dockercompose
+Add S3Helper vars as env vars
+
+
+
+Update test names to given when then
+Update readme with application flow
+Update getCollectionNamesAndSizesInPath in provisioner

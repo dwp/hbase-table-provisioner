@@ -1,6 +1,6 @@
 package util
 
-import app.util.coalescedCollection
+import app.util.CoalescingUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -12,7 +12,7 @@ class CoalesceUtilTest {
         val topicName = "accepted-data.UpdateMongoLock_acceptedDataService"
         val expected = "accepted_data:UpdateMongoLock_acceptedDataService"
 
-        val result = coalescedCollection(topicName)
+        val result = CoalescingUtil().coalescedCollection(topicName)
 
         assertThat(result).isEqualTo(expected)
     }
@@ -20,10 +20,10 @@ class CoalesceUtilTest {
     @Test
     fun confirmCoalesceReturnsCorrectionCollectionNameForArchive() {
 
-        val topicName = "agent_core:agentToDoArchive"
+        val topicName = "agent_core.agentToDoArchive"
         val expected = "agent_core:agentToDo"
 
-        val result = coalescedCollection(topicName)
+        val result = CoalescingUtil().coalescedCollection(topicName)
 
         assertThat(result).isEqualTo(expected)
     }
