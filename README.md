@@ -27,8 +27,12 @@ After cloning this repo, please run:
 | HBASE_REGION_TARGET_SIZE          | 200                               | Number of regions per region server to aim for.
 | HBASE_REGION_SERVER_COUNT         | 150                               | Number of region servers the cluster is using - this value should be input by Terraform
 | HBASE_COALESCE_COLLECTION_REGEX_PATTERN | (?<database>[\w-]+)\.(?<collection>[\w-]+) | Regex pattern used to split collection-table name of S3 files into two groups for variable setting.
-| S3_BUCKET                         | s3://bucket                       | Ingest bucket name - this value should be input by Terraform
-| S3_BASE_PATH                      | /business/mongo                   | Base path prefix where UC database export files are held. Note: This is not to include the adb, cdb etc prefixes. They should be handed in as collection paths.
-| S3_COLLECTION_PATHS               | adb/2020-06-23,cdb/2020-06-23     | Prefix for exported UC database files. This is the same prefix values used by HDI.
-| S3_FILENAME_FORMAT_REGEX          | [\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc  | Regex pattern that matches the filenames of the data files within the aforementioned S3 location.
-| S3_COLLECTION_NAME_REGEX_PATTERN  | ([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc  | Regex pattern that matches the filenames of the data files within the aforementioned S3 location with groups.
+| COLLECTIONS_INPUT_BUCKET                         | s3://bucket                       | Ingest bucket name - this value should be input by Terraform
+| COLLECTIONS_INPUT_BASE_PATH                      | /business/mongo                   | Base path prefix where UC database export files are held. Note: This is not to include the adb, cdb etc prefixes. They should be handed in as collection paths.
+| COLLECTIONS_PREFIX_PATHS               | adb/2020-06-23,cdb/2020-06-23     | Prefix for exported UC database files. This is the same prefix values used by HDI.
+| COLLECTIONS_FILENAME_FORMAT_REGEX          | [\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc  | Regex pattern that matches the filenames of the data files within the aforementioned S3 location.
+| COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN  | ([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc  | Regex pattern that matches the filenames of the data files within the aforementioned S3 location with groups.
+| S3_CLIENT_REGION                      | eu-west-2
+| S3_MAX_ATTEMPTS                       | 5
+| S3_INITIAL_BACKOFF_MILLIS             | 1000
+| S3_BACKOFF_MULTIPLIER                 | 2

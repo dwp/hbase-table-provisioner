@@ -25,7 +25,7 @@ class S3HelperImplTest {
             on { listObjectsV2(request) } doReturn result
         }
 
-        val s3Helper = S3HelperImpl(1, 1000, 2.0)
+        val s3Helper = S3HelperImpl(1, 1000, 2)
 
         s3Helper.getListOfS3ObjectsResult(s3ClientMock, request)
     }
@@ -39,7 +39,7 @@ class S3HelperImplTest {
             on { listObjectsV2(request) } doThrow SdkClientException::class
         }
 
-        val s3Helper = S3HelperImpl(1, 1000, 2.0)
+        val s3Helper = S3HelperImpl(1, 1000, 2)
 
         try {
             s3Helper.getListOfS3ObjectsResult(s3ClientMock, request)

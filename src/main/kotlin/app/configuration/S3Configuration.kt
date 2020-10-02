@@ -15,7 +15,7 @@ class S3Configuration(
         var clientRegion: String? = "NOT_SET",
         var maxAttempts: Int? = 5,
         var initialBackoffMillis: Long? = 1000L,
-        var backoffMultiplier: Double? = 2.0) {
+        var backoffMultiplier: Long? = 2) {
 
 
     @Bean

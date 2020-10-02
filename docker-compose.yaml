@@ -28,11 +28,15 @@ services:
       HBASE_REGION_TARGET_SIZE: "200"
       HBASE_REGION_SERVER_COUNT: "150"
       HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
-      S3_BUCKET: "s3://bucket"
-      S3_BASE_PATH: "/business/mongo"
-      S3_COLLECTION_PATHS: "adb/2020-06-23"
-      S3_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
-      S3_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
+      COLLECTIONS_INPUT_BUCKET: "s3://bucket"
+      COLLECTIONS_INPUT_BASE_PATH: "/business/mongo"
+      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23"
+      COLLECTIONS_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
+      COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
+      S3_CLIENT_REGION: "eu-west-2"
+      S3_MAX_ATTEMPTS: 5
+      S3_INITIAL_BACKOFF_MILLIS: 1000
+      S3_BACKOFF_MULTIPLIER: 2
 
   hbase:
     image: harisekhon/hbase:1.4
