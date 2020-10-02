@@ -1,12 +1,23 @@
 # hbase-table-provisioner
 
-## hbase_table_provisioner
+Hbase to Provisioner is a Kotlin application which calculates the number of Hbase regions a collection requires to be correctly split prior to a dataload, to prevent the Hbase splitting event occurring.
 
-This repo contains Makefile to fit the standard pattern.
-This repo is a base to create new non-Terraform repos, adding the githooks submodule, making the repo ready for use.
+The application calculates the splitting by understanding the total bytes of all of the collections and the total bytes per collection; where a collections data is split across multiple data files.
+With the information of the total bytes for all collections, the application divides total bytes by the maximum regions across the cluster (region servers * ideal region count per server); this creates a comparable unit known as region_unit.
+For each collection, the total bytes of the collection is divided by the region unit to find the number of regions it should hold on the cluster. Larger size clusters receive a large number of regions compared to small regions.
+The number of regions a collection requires is then used against a byte map to find the region start & stop positions in bytecode. This information is used on the Hbase API to create the table and create the required splitting prior to a data load.
+
+
+## Instructions for this repo
 
 After cloning this repo, please run:  
 `make bootstrap`
+
+## Instructions for running
+
+### Integration tests
+
+### Running locally
 
 ## Environment Variables
 
@@ -36,3 +47,8 @@ After cloning this repo, please run:
 | S3_MAX_ATTEMPTS                       | 5
 | S3_INITIAL_BACKOFF_MILLIS             | 1000
 | S3_BACKOFF_MULTIPLIER                 | 2
+
+## Outstanding Work
+- Create integration tests
+- Modify makefile & Docker compose to support integration tests
+- Complete README for instructions on how to run the application
