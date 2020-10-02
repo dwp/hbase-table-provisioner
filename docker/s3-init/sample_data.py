@@ -38,16 +38,27 @@ def main():
     batch_nos = {}
     file_count = int(args.file_count if args.file_count else 10)
 
-    for i in range(file_count):
-        generate_dump_file(args, batch_nos, data_key_service, i)
+    if not args.dump_paths:
+        generate_multiple_dump_files(file_count, args, batch_nos, data_key_service, "collection-thirtyone", "agentToDoArchive", "agent_core")
+    elif not args.dump_paths.contains(","):
+        generate_multiple_dump_files(file_count, args, batch_nos, data_key_service, "collection-thirtyone", "agentToDoArchive", "agent_core", args.dump_paths)
+    else:
+        for path in dump_output_paths_list:
+            generate_multiple_dump_files(file_count, args, batch_nos, data_key_service, "collection-thirtyone", "agentToDoArchive", "agent_core", path)
+
+
+def generate_multiple_dump_files(file_count, args, batch_nos, data_key_service, coalesced_collection="", coalesced_archive_collection="", database="", dump_path=""):
+    for filenumber in range(1, file_count + 1):
+        generate_dump_file(args, batch_nos, data_key_service, filenumber, dump_path)
 
     if args.coalesced:
-        generate_dump_file(args, batch_nos, data_key_service, file_count + 1, "collection-thirtyone")
+        generate_dump_file(args, batch_nos, data_key_service, file_count + 1, coalesced_collection, dump_path)
 
     if args.coalesced_archive:
-        generate_dump_file(args, batch_nos, data_key_service, file_count + 2, "agentToDoArchive", "agent_core")
+        generate_dump_file(args, batch_nos, data_key_service, file_count + 2, coalesced_archive_collection, database, dump_path)
 
-def generate_dump_file(args, batch_nos, data_key_service, i, collection_override="", database_override =""):
+
+def generate_dump_file(args, batch_nos, data_key_service, i, collection_override="", database_override="", dump_path=""):
     dks_response = requests.get(data_key_service).json()
     encryption_metadata = {
         'keyEncryptionKeyId': dks_response['dataKeyEncryptionKeyId'],
@@ -59,7 +70,13 @@ def generate_dump_file(args, batch_nos, data_key_service, i, collection_override
     collection = collection_override if collection_override != "" else f'collection-{(i // 2) + 1}'
     batch = f'{database}.{collection}'
     batch_nos[batch] = batch_nos.get(batch, 0) + 1
-    record_count = int(args.batch_size if args.batch_size else 10)
+
+    use_variable_file_sizes = False if args.use_variable_file_sizes.upper() != "TRUE" else True
+    if use_variable_file_sizes:
+        record_count = random.randrange(0,100)
+    else:
+        record_count = int(args.batch_size if args.batch_size else 10)
+
     for j in range(record_count):
         print(f"Making record {j}/{record_count}.")
         contents = contents + \
@@ -138,14 +155,25 @@ def generate_dump_file(args, batch_nos, data_key_service, i, collection_override
         [encryption_metadata['initialisationVector'], encrypted_contents] = \
             encrypt(encryption_metadata['plaintextDatakey'],
                     contents.encode("utf8"), args.encrypt)
-    metadata_file = f'{batch}.{batch_nos[batch]:04d}.json.encryption.json'
-    with open(metadata_file, 'w') as metadata:
-        print(f'Writing metadata file {metadata_file}')
-        json.dump(encryption_metadata, metadata, indent=4)
-    data_file = f'{batch}.{batch_nos[batch]:04d}.json.gz.enc'
-    with open(data_file, 'wb') as data:
-        print(f'Writing data file {data_file}')
-        data.write(encrypted_contents)
+
+    if dump_path:
+        metadata_file = f'{dump_path}/{batch}.{batch_nos[batch]:04d}.json.encryption.json'
+        with open(metadata_file, 'w') as metadata:
+            print(f'Writing metadata file {metadata_file}')
+            json.dump(encryption_metadata, metadata, indent=4)
+        data_file = f'{dump_path}/{batch}.{batch_nos[batch]:04d}.json.gz.enc'
+        with open(data_file, 'wb') as data:
+            print(f'Writing data file {data_file}')
+            data.write(encrypted_contents)
+    else:
+        metadata_file = f'{batch}.{batch_nos[batch]:04d}.json.encryption.json'
+        with open(metadata_file, 'w') as metadata:
+            print(f'Writing metadata file {metadata_file}')
+            json.dump(encryption_metadata, metadata, indent=4)
+        data_file = f'{batch}.{batch_nos[batch]:04d}.json.gz.enc'
+        with open(data_file, 'wb') as data:
+            print(f'Writing data file {data_file}')
+            data.write(encrypted_contents)
 
 
 def encrypt(datakey, unencrypted_bytes, do_encryption):
@@ -232,38 +260,60 @@ def command_line_args():
     parser = argparse.ArgumentParser(description='Generate sample encrypted data.')
     parser.add_argument('-a', '--id-with-mongo-date-in', action='store_true',
                         help='Add a record with an id with a mongo created date time.')
+
     parser.add_argument('-b', '--coalesced', action='store_true',
                         help='Add a file from a coalesced collection.')
+
     parser.add_argument('-c', '--compress', action='store_true',
                         help='Compress before encryption.')
+
     parser.add_argument('-d', '--record-with-no-timestamp', action='store_true',
                         help='Add a record with no timestamp to each file.')
+
     parser.add_argument('-e', '--encrypt', action='store_true',
                         help='Encrypt the data.')
+
     parser.add_argument('-f', '--coalesced-archive', action='store_true',
                         help='Add a file from a collection with a coalesced archive.')
+
     parser.add_argument('-g', '--add-early-records', action='store_true',
                         help='Add an old records that should be filtered out.')
+
     parser.add_argument('-i', '--record-with-no-id', action='store_true',
                         help='Add an record with no id to each file.')
+
     parser.add_argument('-j', '--add-late-records', action='store_true',
                         help='Add new records that should be filtered out on.')
+
     parser.add_argument('-k', '--data-key-service',
                         help='Use the specified data key service.')
+
     parser.add_argument('-m', '--malformed-input', action='store_true',
                         help='Add malformed inputs to each file.')
+
     parser.add_argument('-n', '--file-count',
                         help='The number of files to create.')
+
     parser.add_argument('-o', '--mongo-id', action='store_true',
                         help='Add a record with a mongo native id.')
+
     parser.add_argument('-r', '--removed-record', action='store_true',
                         help='Add a removed record.')
+
     parser.add_argument('-v', '--archived-record', action='store_true',
                         help='Add an archived record.')
+
     parser.add_argument('-s', '--batch-size',
-                        help='The number of records in each file.')
+                        help='The number of records in each file. Not respected if -x or --use-variable-file-sizes is used.')
+
     parser.add_argument('-t', '--record-with-no-timestamps', action='store_true',
                         help='Add a record with no modified or created timestamp to each file.')
+
+    parser.add_argument('-x', '--use-variable-file-sizes', action='store_true',
+                        help='String bool - Uses variable file size of output files needed to create a variance for collection sizes. Negates the use of -s or --batch-size')
+
+    parser.add_argument('-p', '--dump-paths', action='store_true',
+                        help='Command separated string - Individual of UC Dump paths e.g "adb/2020-02-15,cdb/2019-01-01".')
     return parser.parse_args()
 
 
