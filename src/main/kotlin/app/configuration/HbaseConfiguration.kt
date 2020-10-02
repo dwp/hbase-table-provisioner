@@ -33,11 +33,11 @@ data class HBaseConfiguration(
         val configuration = org.apache.hadoop.conf.Configuration().apply {
             set(HConstants.ZOOKEEPER_ZNODE_PARENT, zookeeperParent ?: "NOPE")
             set(HConstants.ZOOKEEPER_QUORUM, zookeeperQuorum ?: "NOPE")
-            setInt("hbase.zookeeper.port", zookeeperPort?.toIntOrNull() ?: 666)
-            setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, clientScannerTimeoutPeriodMs?.toIntOrNull() ?: 666)
-            setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, clientTimeoutMs?.toIntOrNull() ?: 666)
-            setInt(HConstants.HBASE_RPC_READ_TIMEOUT_KEY, rpcReadTimeoutMs?.toIntOrNull() ?: 666)
-            setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries?.toIntOrNull() ?: 666)
+            setInt("hbase.zookeeper.port", zookeeperPort?.toInt() ?: 666)
+            setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, clientScannerTimeoutPeriodMs?.toInt() ?: 666)
+            setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, clientTimeoutMs?.toInt() ?: 666)
+            setInt(HConstants.HBASE_RPC_READ_TIMEOUT_KEY, rpcReadTimeoutMs?.toInt() ?: 666)
+            setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries?.toInt() ?: 666)
         }
 
         logger.info("Timeout configuration",
