@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Generate sample data for the historic data importer.
+"""Generate sample data for the hbase table provisioner
 
 Generates encrypted and optionally compressed files which are then
 placed in the s3 bucket in localstack to enable integration testing.

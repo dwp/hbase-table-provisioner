@@ -1,7 +1,6 @@
 version: '3'
 
 services:
-
   hbase-table-provisioner:
     image: hbase-table-provisioner:latest
     build: ./
@@ -13,7 +12,7 @@ services:
       ENVIRONMENT: "local-dev"
       APPLICATION_NAME: "hbase-table-provisioner"
       APP_VERSION: "test"
-      LOG_LEVEL: DEBUG
+      LOG_LEVEL: "DEBUG"
       HBASE_ZOOKEEPER_PARENT: "/hbase"
       HBASE_ZOOKEEPER_PORT: "2181"
       HBASE_ZOOKEEPER_QUORUM: "hbase"
@@ -28,12 +27,12 @@ services:
       HBASE_REGION_REPLICATION_COUNT: 3
       HBASE_REGION_TARGET_SIZE: "200"
       HBASE_REGION_SERVER_COUNT: "150"
-      HBASE_COALESCE_COLLECTION_REGEX_PATTERN: "(?<database>[\w-]+)\.(?<collection>[\w-]+)"
+      HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
       S3_BUCKET: "s3://bucket"
       S3_BASE_PATH: "/business/mongo"
       S3_COLLECTION_PATHS: "adb/2020-06-23"
-      S3_FILENAME_FORMAT_REGEX: "[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc"
-      S3_COLLECTION_NAME_REGEX_PATTERN: "([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc"
+      S3_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
+      S3_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
 
   hbase:
     image: harisekhon/hbase:1.4
@@ -45,8 +44,8 @@ services:
     container_name: hbase
 
   htp-integration-test:
-    image: hbase-table-provisioner-integration-test:latest
-    container_name: hbase-table-provisioner-integration-test
+    image: htp-integration-test:latest
+    container_name: htp-integration-test
     build:
       dockerfile: docker/integration/Dockerfile
       context: .
@@ -58,8 +57,8 @@ services:
       ENVIRONMENT: "local-dev"
       APPLICATION_NAME: "hbase-table-provisioner"
       APP_VERSION: "test"
-      LOG_LEVEL: DEBUG
-      HBASE_TABLE_PATTERN: ([-\w]+)\.([-\w]+)
+      LOG_LEVEL: "DEBUG"
+      HBASE_TABLE_PATTERN: '([-\w]+)\.([-\w]+)'
       HBASE_ZOOKEEPER_PARENT: "/hbase"
       HBASE_ZOOKEEPER_PORT: "2181"
       HBASE_ZOOKEEPER_QUORUM: "hbase"
@@ -70,8 +69,8 @@ services:
       HBASE_PAUSE_MILLISECONDS: "50"
       HBASE_RETRIES": "3"
 
-  s3:
-    image: localstack/localstack
+  aws-s3:
+    image: localstack/localstack-full
     ports:
       - '4563-4584:4563-4584'
       - '8055:8080'
@@ -79,7 +78,7 @@ services:
       - SERVICES=s3
       - DEBUG=1
       - DATA_DIR=/data/s3
-    container_name: s3
+    container_name: aws-s3
 
   s3-init:
     image: s3-init
@@ -87,15 +86,16 @@ services:
       context: docker/s3-init
     container_name: s3-init
     depends_on:
-      - s3
+      - aws-s3
     environment:
       - S3_SERVICE_ENDPOINT=http://s3:4572
       - AWS_REGION=eu-west-2
       - AWS_ACCESS_KEY_ID=aws-access-key
       - AWS_SECRET_ACCESS_KEY=aws-secret-access-key
-      - S3_BUCKET=hbase-provisioner
-      - S3_PREFIX=test/prefix/
-      - S3_PAGING_PREFIX=test/prefix
+      - S3_BUCKET=input-bucket
+      - S3_PREFIX=businessdata/mongo/
+      - S3_PAGING_PREFIX=businessdata/mongo
+      - S3_UCDUMP_PREFIXES="adb/2020-06-23,cdb/2020-04-01,pdb/2020-06-17"
       - S3_MANIFEST_BUCKET=manifestbucket
       - CREATE_PAGINATED_DATA=${CREATE_PAGINATED_DATA:-no}
 

@@ -39,8 +39,8 @@ create_paginated_data() {
     dd if=/dev/zero of=$data_file bs=1 count=1
     dd if=/dev/zero of=$metadata_file bs=1 count=1
     stderr Copying pair \'$i\'.
-    aws_s3 cp $data_file s3://${S3_BUCKET}/${S3_PAGING_PREFIX}/${data_file}
-    aws_s3 cp $metadata_file s3://${S3_BUCKET}/${S3_PAGING_PREFIX}/${metadata_file}
+    aws_s3 cp $data_file s3://${S3_BUCKET}/${S3_PAGING_PREFIX}/${S3_UCDUMP_PREFIXES}/${data_file}
+    aws_s3 cp $metadata_file s3://${S3_BUCKET}/${S3_PAGING_PREFIX}/${S3_UCDUMP_PREFIXES}/${metadata_file}
   done
 }
 
@@ -64,5 +64,5 @@ aws_s3_endpoint() {
 }
 
 aws_s3_prefix() {
-  echo uc-historic-data/test/prefix
+  echo hbase-table-provisioner/test/prefix
 }
