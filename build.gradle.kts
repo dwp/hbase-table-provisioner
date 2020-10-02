@@ -87,7 +87,7 @@ tasks.register<Test>("unit") {
     }
 }
 
-tasks.register<Test>("hbase-table-provisioner-integration-test") {
+tasks.register<Test>("integration-test") {
     description = "Runs the hbase table provisioner integration tests"
     group = "verification"
     testClassesDirs = sourceSets["integration"].output.classesDirs

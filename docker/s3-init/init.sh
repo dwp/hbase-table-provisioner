@@ -8,7 +8,7 @@ aws configure set default.region "${AWS_REGION}"
 aws configure set region "${AWS_REGION}"
 aws configure list
 
-declare -i BUCKET_COUNT=$(aws_s3 ls | grep "$S3_BUCKET" | wc -l)
+declare -i BUCKET_COUNT=$(aws_s3 ls | grep "${S3_BUCKET}" | wc -l)
 
 if [[ $BUCKET_COUNT -eq 0 ]]; then
     aws_s3 mb "s3://${S3_BUCKET}"
@@ -35,9 +35,9 @@ else
 
     if create_sample_data; then
         for file in *.json.gz.enc *.json.encryption.json; do
-            aws_s3 cp "$file" s3://"${S3_BUCKET}"/"${S3_PREFIX}"
+            aws_s3 cp "${file}" "s3://${S3_BUCKET}/${S3_PREFIX}"
         done
-        aws_s3 ls "$S3_BUCKET"/"$S3_PREFIX"
+        aws_s3 ls "${S3_BUCKET}/${S3_PREFIX}"
         ls -l
     fi
 fi

@@ -1,4 +1,5 @@
 SHELL:=bash
+S3_READY_REGEX=^Ready\.$
 
 default: help
 
@@ -16,7 +17,7 @@ git-hooks: ## Set up hooks in .githooks
 	git config core.hooksPath .githooks \
 
 local-build: ## Build with gradle
-	gradle :unit build -x test
+	gradle clean :unit build -x test
 
 local-dist: ## Assemble distribution files in build/dist with gradle
 	gradle assembleDist
@@ -27,17 +28,18 @@ local-test: ## Run the unit tests with gradle
 local-all: local-build local-test local-dist ## Build and test with gradle
 
 integration-test: ## Run the integration tests in a Docker container
-	echo "WIP"
+	@{ \
+		set +e ;\
+		docker stop htp-integration-test ;\
+		docker rm htp-integration-test ;\
+		set -e ;\
+	}
+	docker-compose -f docker-compose.yaml build htp-integration-test
+	docker-compose -f docker-compose.yaml run --name htp-integration-test htp-integration-test gradle --no-daemon --rerun-tasks integration-test -x test
 
-integration-test-equality: ## Run the integration tests in a Docker container
-	echo "WIP"
-
-integration-load-test: ## Run the integration load tests in a Docker container
-	echo "WIP"
 
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
-integration-all:
-	echo "WIP"
+integration-all: destroy local-all up integration-test
 
 hbase-shell: ## Open an HBase shell onto the running HBase container
 	docker-compose run --rm hbase shell
@@ -54,10 +56,20 @@ hbase-up: ## Bring up and provision mysql
 		echo ...hbase ready.; \
 	}
 
-services: hbase-up ## Bring up supporting services in docker
+services: hbase-up s3-up ## Bring up supporting services in docker
+
+s3-up: ## Bring up the S3 localstack service
+	docker-compose -f docker-compose.yaml up --build -d aws-s3
+	@{ \
+		while ! docker logs aws-s3 2> /dev/null | grep -q $(S3_READY_REGEX); do \
+			echo Waiting for s3.; \
+			sleep 2; \
+		done; \
+	}
+	docker-compose up --build s3-init
 
 up: services ## Bring up Reconciliation in Docker with supporting services
-	docker-compose -f docker-compose.yaml up --build -d hbase_table_provisioner
+	docker-compose -f docker-compose.yaml up --build hbase_table_provisioner
 
 restart: ## Restart HTP and all supporting services
 	docker-compose restart
@@ -68,4 +80,5 @@ down: ## Bring down the HTP Docker container and support services
 destroy: down ## Bring down the HTP Docker container and services then delete all volumes
 	docker network prune -f
 	docker volume prune -f
+
 
