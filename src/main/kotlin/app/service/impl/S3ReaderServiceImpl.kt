@@ -42,15 +42,16 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             val objectSummaries: MutableList<S3ObjectSummary> = mutableListOf()
 
             do {
-                logger.info("Calling S3 for collection", "bucket" to bucket, "collection_prefix" to fullBasePath)
+                logger.info("Getting list of S3 objects for cluster", "bucket" to bucket, "s3_prefix" to fullBasePath)
 
-                results = s3Helper.listObjectsV2Result(s3Client, request, objectSummaries)
-                request.continuationToken = results?.nextContinuationToken
+                results = s3Helper.getListOfS3ObjectsResult(s3Client, request)
+                objectSummaries.addAll(results!!.objectSummaries)
+                request.continuationToken = results.nextContinuationToken
 
-                logger.info("Got result from S3 for collection",
+                logger.info("Got list of S3 objects for cluster",
                         "bucket" to bucket,
-                        "collection_prefix" to fullBasePath,
-                        "results_size" to results?.objectSummaries?.size.toString())
+                        "s3_prefix" to fullBasePath,
+                        "results_size" to results.objectSummaries?.size.toString())
 
             } while (results != null && results.isTruncated)
 

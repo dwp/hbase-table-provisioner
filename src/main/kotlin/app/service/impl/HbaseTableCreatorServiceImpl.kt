@@ -1,6 +1,6 @@
 package app.service.impl
 
-import app.configuration.CollectionS3Configuration
+import app.configuration.CollectionsS3Configuration
 import app.exception.TableExistsInHbase
 import app.service.HbaseTableCreatorService
 import org.apache.hadoop.hbase.*
@@ -95,6 +95,6 @@ class HbaseTableCreatorServiceImpl(
     private fun hbaseTableName(name: String) = TableName.valueOf(name)
 
     companion object {
-        val logger = DataworksLogger.getLogger(CollectionS3Configuration::class.toString())
+        val logger = DataworksLogger.getLogger(CollectionsS3Configuration::class.toString())
     }
 }

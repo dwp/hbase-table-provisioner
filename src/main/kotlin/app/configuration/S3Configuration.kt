@@ -9,18 +9,14 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
-
 @Configuration
 @ConfigurationProperties(prefix = "s3")
-data class CollectionS3Configuration(
-        var bucket: String? = "NOT_SET",
-        var basePath: String? = "NOT_SET",
-        var collectionPaths: String? = "NOT_SET",
+class S3Configuration(
         var clientRegion: String? = "NOT_SET",
-        var filenameFormatRegexPattern: String? = "NOT_SET",
-        var filenameFormatDataExtensionPattern: String? = "NOT_SET",
-        var collectionNameRegexPattern: String? = "NOT_SET"
-) {
+        var maxAttempts: Int? = 5,
+        var initialBackoffMillis: Long? = 1000L,
+        var backoffMultiplier: Double? = 2.0) {
+
 
     @Bean
     fun s3Client(): AmazonS3 {
@@ -37,25 +33,15 @@ data class CollectionS3Configuration(
     }
 
     @Bean
-    fun bucket() = bucket
+    fun maxAttempts() = maxAttempts!!
 
     @Bean
-    fun basePath() = basePath
+    fun initialBackoffMillis() = initialBackoffMillis!!
 
     @Bean
-    fun collectionPaths() = collectionPaths?.split(",")
-
-    @Bean
-    fun filenameFormatRegexPattern() = filenameFormatRegexPattern
-
-    @Bean
-    fun filenameFormatDataExtensionPattern() = filenameFormatDataExtensionPattern
-
-    @Bean
-    fun collectionNameRegexPattern() = collectionNameRegexPattern
+    fun backoffMultiplier() = backoffMultiplier!!
 
     companion object {
-        val logger = DataworksLogger.getLogger(CollectionS3Configuration::class.toString())
+        val logger = DataworksLogger.getLogger(S3Configuration::class.toString())
     }
-
 }
