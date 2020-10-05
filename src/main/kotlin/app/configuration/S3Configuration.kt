@@ -17,14 +17,13 @@ class S3Configuration(
         var initialBackoffMillis: String? = "NOT_SET",
         var backoffMultiplier: String? = "NOT_SET") {
 
-
     @Bean
     fun s3Client(): AmazonS3 {
         logger.info("Retrieving AWS S3 Client", "region" to clientRegion!!)
 
         val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-                .withRegion(Regions.valueOf(clientRegion!!))
+                .withRegion(Regions.fromName(clientRegion!!.toLowerCase().replace("_", "-")))
                 .build()
 
         logger.info("Retrieved AWS S3 Client", "region" to clientRegion!!)
