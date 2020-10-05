@@ -10,7 +10,7 @@ ENV GROUP=$USER
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 
-COPY ./build/libs/*.jar ./$APP_NAME.jar
+COPY build/libs/*.jar ./$APP_NAME.jar
 
 RUN addgroup $GROUP
 RUN useradd -g $GROUP $USER

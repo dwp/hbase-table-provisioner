@@ -25,15 +25,7 @@ fi
 
 stderr creating sample data
 
-for file in test-data/*.*; do
-  mv ^
-  aws_s3 cp "${file}" "s3://${S3_BUCKET}/${S3_PREFIX}"
+for file in ./test-data/adb/2020-06-23/; do
+  echo ${file}
+  aws_s3 cp "${file}" "s3://${S3_BUCKET}/adb/2020-06-23"
 done
-
-if create_sample_data; then
-    for file in *.json.gz.enc *.json.encryption.json; do
-        aws_s3 cp "${file}" "s3://${S3_BUCKET}/${S3_PREFIX}"
-    done
-    aws_s3 ls "${S3_BUCKET}/${S3_PREFIX}"
-    ls -l
-fi
