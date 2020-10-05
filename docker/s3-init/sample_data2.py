@@ -29,10 +29,6 @@ from Crypto.Util import Counter
 
 def main():
     """Main entry point."""
-
-
-
-
     args = command_line_args()
     data_key_service = args.data_key_service \
         if args.data_key_service \
