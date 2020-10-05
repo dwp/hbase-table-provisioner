@@ -32,6 +32,7 @@ dependencies {
     implementation("com.amazonaws:aws-java-sdk:1.11.780")
     implementation("com.amazonaws:aws-java-sdk-core:1.11.780")
     implementation("com.amazonaws:aws-java-sdk-s3:1.11.780")
+
     testImplementation("io.kotest:kotest-runner-junit5-jvm:4.2.0")
     testImplementation("io.kotest:kotest-assertions-core-jvm:4.2.0")
     testImplementation("io.kotest:kotest-property-jvm:4.2.0")

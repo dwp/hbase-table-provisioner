@@ -10,7 +10,8 @@ services:
     environment:
       CONTAINER_VERSION: "latest"
       ENVIRONMENT: "local-dev"
-      APPLICATION_NAME: "hbase-table-provisioner"
+      APPLICATION: "hbase-table-provisioner"
+      COMPONENT: "jar-file"
       APP_VERSION: "test"
       LOG_LEVEL: "DEBUG"
       HBASE_ZOOKEEPER_PARENT: "/hbase"
@@ -59,7 +60,8 @@ services:
 #    environment:
 #      CONTAINER_VERSION: "latest"
 #      ENVIRONMENT: "local-dev"
-#      APPLICATION_NAME: "htp-integration-test"
+#      APPLICATION: "htp-integration-test"
+#      COMPONENT: "integration-test"
 #      APP_VERSION: "test"
 #      LOG_LEVEL: "DEBUG"
 #      HBASE_ZOOKEEPER_PARENT: "/hbase"
