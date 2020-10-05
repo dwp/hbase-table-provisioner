@@ -5,12 +5,16 @@ import app.helper.S3Helper
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.ListObjectsV2Request
 import com.amazonaws.services.s3.model.ListObjectsV2Result
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Component
-class S3HelperImpl(private val maxAttempts: Int,
+class S3HelperImpl(@Qualifier("maxAttempts")
+                   private val maxAttempts: Int,
+                   @Qualifier("initialBackoffMillis")
                    private val initialBackoffMillis: Long,
+                   @Qualifier("backoffMultiplier")
                    private val backoffMultiplier: Long) : S3Helper {
 
     @Throws(S3Exception::class)
@@ -28,7 +32,7 @@ class S3HelperImpl(private val maxAttempts: Int,
                 success = true
             } catch (e: Exception) {
                 val delayMillis = if (attempts == 0) initialBackoffMillis
-                            else (initialBackoffMillis * attempts * backoffMultiplier)
+                else (initialBackoffMillis * attempts * backoffMultiplier)
 
                 logger.warn("Failed to get s3 object result ${e.message}", "attempt_number" to "${attempts + 1}",
                         "max_attempts" to "$maxAttempts", "retry_delay" to "$delayMillis", "error_message" to "${e.message}")
@@ -36,8 +40,7 @@ class S3HelperImpl(private val maxAttempts: Int,
                 Thread.sleep(delayMillis)
 
                 exception = e
-            }
-            finally {
+            } finally {
                 attempts++
             }
         }

@@ -6,13 +6,16 @@ import app.service.HbaseTableCreatorService
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.*
 import org.apache.hadoop.hbase.io.compress.Compression
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Service
 class HbaseTableCreatorServiceImpl(
         private val hbaseConnection: Connection,
+        @Qualifier("columnFamily")
         private val columnFamily: String,
+        @Qualifier("regionReplicationCount")
         private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
     override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {

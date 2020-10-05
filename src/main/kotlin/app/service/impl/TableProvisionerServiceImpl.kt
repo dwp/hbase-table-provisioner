@@ -4,6 +4,7 @@ import app.service.TableProvisionerService
 import app.util.calculateSplits
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 import kotlin.math.ceil
@@ -11,7 +12,9 @@ import kotlin.math.ceil
 @Service
 class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceImpl,
                                   private val hbaseTableCreatorServiceImpl: HbaseTableCreatorServiceImpl,
+                                  @Qualifier("regionTargetSize")
                                   private val regionTargetSize: Int,
+                                  @Qualifier("regionServerCount")
                                   private val regionServerCount: Int) : TableProvisionerService {
 
     override fun provisionHbaseTable() {

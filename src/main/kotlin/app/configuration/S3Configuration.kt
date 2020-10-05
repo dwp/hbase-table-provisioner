@@ -12,6 +12,7 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 @Configuration
 @ConfigurationProperties(prefix = "s3")
 class S3Configuration(
+
         var clientRegion: String? = "NOT_SET",
         var maxAttempts: String? = "NOT_SET",
         var initialBackoffMillis: String? = "NOT_SET",
