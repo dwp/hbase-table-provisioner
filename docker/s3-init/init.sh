@@ -25,7 +25,12 @@ fi
 
 stderr creating sample data
 
-for file in ./test-data/adb/2020-06-23/; do
+set -e
+cd /test-data
+for file in */*/*; do
   echo ${file}
-  aws_s3 cp "${file}" "s3://${S3_BUCKET}/adb/2020-06-23"
+  aws_s3 cp "${file}" "s3://${S3_BUCKET}/${file}"
 done
+
+aws_s3 ls s3://${S3_BUCKET} --recursive
+set +e

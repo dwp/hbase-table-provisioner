@@ -97,6 +97,7 @@ services:
       - DEFAULT_REGION=eu-west-2
       - DEBUG=1
       - DATA_DIR=/data/s3
+      - START_WEB=0
     container_name: aws-s3
 
   s3-init:
