@@ -28,15 +28,7 @@ local-test: ## Run the unit tests with gradle
 local-all: local-build local-test local-dist ## Build and test with gradle
 
 integration-test: ## Run the integration tests in a Docker container
-	@{ \
-		set +e ;\
-		docker stop htp-integration-test ;\
-		docker rm htp-integration-test ;\
-		set -e ;\
-	}
-	docker-compose -f docker-compose.yaml build htp-integration-test
-	docker-compose -f docker-compose.yaml run --name htp-integration-test htp-integration-test gradle --no-daemon --rerun-tasks integration-test -x test
-
+	echo "WIP"
 
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
 integration-all: destroy local-all up integration-test
