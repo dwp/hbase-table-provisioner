@@ -29,7 +29,7 @@ set -e
 cd /test-data
 for file in */*/*; do
   echo ${file}
-  aws_s3 cp "${file}" "s3://${S3_BUCKET}/${file}"
+  aws_s3 cp "${file}" "s3://${S3_BUCKET}/${S3_PREFIX}/${file}"
 done
 
 aws_s3 ls s3://${S3_BUCKET} --recursive

@@ -28,9 +28,9 @@ services:
       HBASE_REGION_TARGET_SIZE: "200"
       HBASE_REGION_SERVER_COUNT: "150"
       HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
-      COLLECTIONS_INPUT_BUCKET: "s3://bucket"
-      COLLECTIONS_INPUT_BASE_PATH: "/business/mongo"
-      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23"
+      COLLECTIONS_INPUT_BUCKET: "s3://input-bucket"
+      COLLECTIONS_INPUT_BASE_PATH: "business-data/mongo"
+      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23,cdb/2020-04-01"
       COLLECTIONS_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
       COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
       S3_CLIENT_REGION: "eu-west-2"
@@ -113,7 +113,7 @@ services:
       - AWS_ACCESS_KEY_ID=aws-access-key
       - AWS_SECRET_ACCESS_KEY=aws-secret-access-key
       - S3_BUCKET=input-bucket
-      - S3_PREFIX=business-data/mongo/
+      - S3_PREFIX=business-data/mongo
       - S3_UCDUMP_PREFIXES="adb/2020-06-23,cdb/2020-04-01"
       - S3_MANIFEST_BUCKET=manifestbucket
       - CREATE_PAGINATED_DATA=${CREATE_PAGINATED_DATA:-no}
