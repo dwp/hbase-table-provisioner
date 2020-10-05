@@ -48,3 +48,8 @@ venv/
 env/
 tmp/
 test-results/*
+
+# Ignore Gradle build output directory
+build
+
+gradle

@@ -1,0 +1,121 @@
+version: '3'
+
+services:
+  hbase-table-provisioner:
+    image: hbase-table-provisioner:latest
+    build: ./
+    container_name: hbase-table-provisioner
+    depends_on:
+      - hbase
+    environment:
+      CONTAINER_VERSION: "latest"
+      ENVIRONMENT: "local-dev"
+      APPLICATION_NAME: "hbase-table-provisioner"
+      APP_VERSION: "test"
+      LOG_LEVEL: "DEBUG"
+      HBASE_ZOOKEEPER_PARENT: "/hbase"
+      HBASE_ZOOKEEPER_PORT: "2181"
+      HBASE_ZOOKEEPER_QUORUM: "hbase"
+      HBASE_RPC_TIMEOUT_MILLISECONDS: "1200"
+      HBASE_CLIENT_TIMEOUT_MS: "1200"
+      HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_MS: "12000"
+      HBASE_OPERATION_TIMEOUT_MILLISECONDS": "1800"
+      HBASE_PAUSE_MILLISECONDS: "50"
+      HBASE_RETRIES": "3"
+      HBASE_COLUMN_FAMILY: "cf"
+      HBASE_COLUMN_QUALIFIER: "record"
+      HBASE_REGION_REPLICATION_COUNT: 3
+      HBASE_REGION_TARGET_SIZE: "200"
+      HBASE_REGION_SERVER_COUNT: "150"
+      HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
+      COLLECTIONS_INPUT_BUCKET: "s3://bucket"
+      COLLECTIONS_INPUT_BASE_PATH: "/business/mongo"
+      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23"
+      COLLECTIONS_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
+      COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
+      S3_CLIENT_REGION: "eu-west-2"
+      S3_MAX_ATTEMPTS: 5
+      S3_INITIAL_BACKOFF_MILLIS: 1000
+      S3_BACKOFF_MULTIPLIER: 2
+
+  hbase:
+    image: harisekhon/hbase:1.4
+    ports:
+      - 9090:9090
+      - 9095:9095
+      - 2181:2181
+      - 16201:16201
+    container_name: hbase
+
+  htp-integration-test:
+    image: htp-integration-test:latest
+    container_name: htp-integration-test
+    build:
+      dockerfile: docker/integration/Dockerfile
+      context: .
+    depends_on:
+      - hbase-table-provisioner
+    command: "gradle --rerun-tasks integration"
+    environment:
+      CONTAINER_VERSION: "latest"
+      ENVIRONMENT: "local-dev"
+      APPLICATION_NAME: "htp-integration-test"
+      APP_VERSION: "test"
+      LOG_LEVEL: "DEBUG"
+      HBASE_ZOOKEEPER_PARENT: "/hbase"
+      HBASE_ZOOKEEPER_PORT: "2181"
+      HBASE_ZOOKEEPER_QUORUM: "hbase"
+      HBASE_RPC_TIMEOUT_MILLISECONDS: "1200"
+      HBASE_CLIENT_TIMEOUT_MS: "1200"
+      HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_MS: "12000"
+      HBASE_OPERATION_TIMEOUT_MILLISECONDS": "1800"
+      HBASE_PAUSE_MILLISECONDS: "50"
+      HBASE_RETRIES": "3"
+      HBASE_COLUMN_FAMILY: "cf"
+      HBASE_COLUMN_QUALIFIER: "record"
+      HBASE_REGION_REPLICATION_COUNT: 3
+      HBASE_REGION_TARGET_SIZE: "200"
+      HBASE_REGION_SERVER_COUNT: "150"
+      HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
+      COLLECTIONS_INPUT_BUCKET: "s3://bucket"
+      COLLECTIONS_INPUT_BASE_PATH: "/business/mongo"
+      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23"
+      COLLECTIONS_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
+      COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
+      S3_CLIENT_REGION: "eu-west-2"
+      S3_MAX_ATTEMPTS: 5
+      S3_INITIAL_BACKOFF_MILLIS: 1000
+      S3_BACKOFF_MULTIPLIER: 2
+
+  aws-s3:
+    image: localstack/localstack
+    ports:
+      - '4563-4584:4563-4584'
+      - '8055:8080'
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/data/s3
+    container_name: aws-s3
+
+  s3-init:
+    image: s3-init
+    build:
+      context: docker/s3-init
+    container_name: s3-init
+    depends_on:
+      - aws-s3
+    environment:
+      - S3_SERVICE_ENDPOINT=http://s3:4572
+      - AWS_REGION=eu-west-2
+      - AWS_ACCESS_KEY_ID=aws-access-key
+      - AWS_SECRET_ACCESS_KEY=aws-secret-access-key
+      - S3_BUCKET=input-bucket
+      - S3_PREFIX=businessdata/mongo/
+      - S3_PAGING_PREFIX=businessdata/mongo
+      - S3_UCDUMP_PREFIXES="adb/2020-06-23,cdb/2020-04-01,pdb/2020-06-17"
+      - S3_MANIFEST_BUCKET=manifestbucket
+      - CREATE_PAGINATED_DATA=${CREATE_PAGINATED_DATA:-no}
+
+volumes:
+  shared-volume:
