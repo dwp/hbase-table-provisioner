@@ -1,12 +1,10 @@
 package app.service.impl
 
 import app.configuration.CollectionsS3Configuration
-import app.exception.TableExistsInHbase
 import app.service.HbaseTableCreatorService
 import org.apache.hadoop.hbase.*
-import org.apache.hadoop.hbase.client.*
+import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.io.compress.Compression
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
@@ -20,14 +18,17 @@ class HbaseTableCreatorServiceImpl(
         ensureNamespaceExists(collectionName)
 
         if (checkIfTableExists(collectionName)) {
-            logger.error("Table already exists in hbase for collection", "table_name" to collectionName)
-            throw TableExistsInHbase("Table already exists in hbase for collection: $collectionName")
+            logger.warn("Table already exists in hbase for collection", "table_name" to collectionName)
         } else {
             createHbaseTable(collectionName, regionCapacity, splits)
         }
     }
 
-    fun ensureNamespaceExists(namespace: String) {
+    fun ensureNamespaceExists(collectionName: String) {
+
+        val dataTableName = TableName.valueOf(collectionName)
+        val namespace = dataTableName.namespaceAsString
+
         if (!namespaces.contains(namespace)) {
             try {
                 logger.info("Creating namespace", "namespace" to namespace)
@@ -44,8 +45,7 @@ class HbaseTableCreatorServiceImpl(
 
         logger.info("Creating Hbase table",
                 "table_name" to collectionName,
-                "region_capacity" to regionCapacity.toString(),
-                "splits" to splits.toString())
+                "region_capacity" to regionCapacity.toString())
 
         val hbaseTableName = hbaseTableName(collectionName)
 

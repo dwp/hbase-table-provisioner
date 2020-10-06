@@ -26,7 +26,7 @@ data class CollectionsS3Configuration(
 
     @Bean
     @Qualifier("prefixPaths")
-    fun prefixPaths() = prefixPaths?.split(",")
+    fun prefixPaths() = prefixPaths
 
     @Bean
     @Qualifier("filenameFormatRegexPattern")

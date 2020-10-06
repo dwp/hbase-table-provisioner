@@ -25,14 +25,14 @@ services:
       HBASE_COLUMN_FAMILY: "cf"
       HBASE_COLUMN_QUALIFIER: "record"
       HBASE_REGION_REPLICATION_COUNT: 3
-      HBASE_REGION_TARGET_SIZE: "200"
-      HBASE_REGION_SERVER_COUNT: "150"
+      HBASE_REGION_TARGET_SIZE: "12"
+      HBASE_REGION_SERVER_COUNT: "8"
       HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
-      COLLECTIONS_INPUT_BUCKET: "s3://input-bucket"
+      COLLECTIONS_INPUT_BUCKET: "input-bucket"
       COLLECTIONS_INPUT_BASE_PATH: "business-data/mongo"
       COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23,cdb/2020-04-01"
-      COLLECTIONS_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
-      COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
+      COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '^[\w]+\-[\w]+\/[\w]+\/[\w]+\/\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])\/[\w-]+\.[\w-]+\.[0-9]+\.json.gz.enc'
+      COLLECTIONS_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
       S3_CLIENT_REGION: "eu-west-2"
       S3_MAX_ATTEMPTS: 5
       S3_INITIAL_BACKOFF_MILLIS: 1000
