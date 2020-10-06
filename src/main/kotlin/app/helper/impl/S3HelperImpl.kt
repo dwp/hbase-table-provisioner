@@ -10,11 +10,8 @@ import org.springframework.stereotype.Component
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Component
-class S3HelperImpl(@Qualifier("maxAttempts")
-                   private val maxAttempts: Int,
-                   @Qualifier("initialBackoffMillis")
+class S3HelperImpl(private val maxAttempts: Int,
                    private val initialBackoffMillis: Long,
-                   @Qualifier("backoffMultiplier")
                    private val backoffMultiplier: Long) : S3Helper {
 
     @Throws(S3Exception::class)
