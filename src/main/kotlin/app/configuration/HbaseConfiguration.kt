@@ -7,7 +7,6 @@ import org.apache.hadoop.hbase.client.ConnectionFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Configuration
@@ -17,7 +16,7 @@ data class HBaseConfiguration(
         var zookeeperQuorum: String? = "NOT_SET",
         var zookeeperPort: String? = "NOT_SET",
         var clientScannerTimeoutPeriodMilliseconds: String? = "NOT_SET",
-        var clientTimeoutMilliseconds: String? = "NOT_SET",
+        var clientOperationTimeoutMilliseconds: String? = "NOT_SET",
         var rpcReadTimeoutMilliseconds: String? = "NOT_SET",
         var retries: String? = "NOT_SET",
         var columnFamily: String? = "NOT_SET",
@@ -35,7 +34,7 @@ data class HBaseConfiguration(
             set(HConstants.ZOOKEEPER_QUORUM, zookeeperQuorum!!)
             setInt("hbase.zookeeper.port", zookeeperPort!!.toInt())
             setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, clientScannerTimeoutPeriodMilliseconds!!.toInt())
-            setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, clientTimeoutMilliseconds!!.toInt())
+            setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, clientOperationTimeoutMilliseconds!!.toInt())
             setInt(HConstants.HBASE_RPC_READ_TIMEOUT_KEY, rpcReadTimeoutMilliseconds!!.toInt())
             setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries!!.toInt())
         }

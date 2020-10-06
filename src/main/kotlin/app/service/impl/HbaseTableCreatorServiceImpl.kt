@@ -13,9 +13,7 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 @Service
 class HbaseTableCreatorServiceImpl(
         private val hbaseConnection: Connection,
-        @Qualifier("columnFamily")
         private val columnFamily: String,
-        @Qualifier("regionReplicationCount")
         private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
     override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {

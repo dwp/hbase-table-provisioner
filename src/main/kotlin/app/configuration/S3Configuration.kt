@@ -6,9 +6,9 @@ import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Configuration
@@ -20,15 +20,16 @@ data class S3Configuration(
         var backoffMultiplier: String? = "NOT_SET") {
 
     @Bean
+    @Profile("AWS_S3")
     fun s3Client(): AmazonS3 {
-        logger.info("Retrieving AWS S3 Client", "region" to clientRegion!!)
+        logger.info("Connecting to AWS S3", "region" to clientRegion!!)
 
         val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
                 .withRegion(Regions.fromName(clientRegion!!.toLowerCase().replace("_", "-")))
                 .build()
 
-        logger.info("Retrieved AWS S3 Client", "region" to clientRegion!!)
+        logger.info("Connected to AWS S3 Client", "region" to clientRegion!!)
 
         return s3Client
     }

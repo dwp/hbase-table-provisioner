@@ -31,7 +31,7 @@ class S3HelperImpl(private val maxAttempts: Int,
                 val delayMillis = if (attempts == 0) initialBackoffMillis
                 else (initialBackoffMillis * attempts * backoffMultiplier)
 
-                logger.warn("Failed to get s3 object result ${e.message}", "attempt_number" to "${attempts + 1}",
+                logger.warn("Failed to get s3 object result: ${e.message}", "attempt_number" to "${attempts + 1}",
                         "max_attempts" to "$maxAttempts", "retry_delay" to "$delayMillis", "error_message" to "${e.message}")
 
                 Thread.sleep(delayMillis)

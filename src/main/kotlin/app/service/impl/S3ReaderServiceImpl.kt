@@ -14,17 +14,12 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 @Service
 class S3ReaderServiceImpl(val s3Client: AmazonS3,
                           val s3Helper: S3HelperImpl,
-                          @Qualifier("inputBucket")
-                          val bucket: String,
-                          @Qualifier("inputBasePath")
-                          val basePath: String,
+                          val inputBucket: String,
+                          val inputBasePath: String,
                           val sourceDatabasePaths: List<String>,
-                          @Qualifier("filenameFormatRegexPattern")
                           val filenameFormatRegexPattern: String,
-                          @Qualifier("filenameFormatDataExtensionPattern")
                           val filenameFormatDataExtensionPattern: String,
-                          @Qualifier("nameRegexPattern")
-                          val collectionNameRegexPattern: String) : S3ReaderService {
+                          val nameRegexPattern: String) : S3ReaderService {
 
     override fun getCollectionSummaries(): MutableMap<String, Long> {
 
@@ -42,20 +37,20 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
     private fun getCollectionNamesAndSizesInPath(sourceDatabasePath: String): MutableMap<String, Long> {
         try {
-            val fullBasePath = "$basePath/$sourceDatabasePath"
-            val request = ListObjectsV2Request().withBucketName(bucket).withPrefix(fullBasePath).withMaxKeys(1000)
+            val fullBasePath = "$inputBasePath/$sourceDatabasePath"
+            val request = ListObjectsV2Request().withBucketName(inputBucket).withPrefix(fullBasePath).withMaxKeys(1000)
             var results: ListObjectsV2Result?
             val objectSummaries: MutableList<S3ObjectSummary> = mutableListOf()
 
             do {
-                logger.info("Getting list of S3 objects for cluster", "bucket" to bucket, "s3_prefix" to fullBasePath)
+                logger.info("Getting list of S3 objects for cluster", "bucket" to inputBucket, "s3_prefix" to fullBasePath)
 
                 results = s3Helper.getListOfS3ObjectsResult(s3Client, request)
-                objectSummaries.addAll(results!!.objectSummaries)
+                objectSummaries.addAll(results.objectSummaries)
                 request.continuationToken = results.nextContinuationToken
 
                 logger.info("Got list of S3 objects for cluster",
-                    "bucket" to bucket,
+                    "bucket" to inputBucket,
                     "s3_prefix" to fullBasePath,
                     "results_size" to results.objectSummaries?.size.toString())
 
@@ -96,7 +91,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         filteredObjects.forEach { collection ->
             val key = collection.key
 
-            Regex(collectionNameRegexPattern).find(key)?.let {
+            Regex(nameRegexPattern).find(key)?.let {
 
                 val (topicName) = it.destructured
                 val coalesced = CoalescingUtil().coalescedCollection(topicName)

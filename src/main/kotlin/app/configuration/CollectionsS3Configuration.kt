@@ -1,5 +1,6 @@
 package app.configuration
 
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,20 +17,26 @@ data class CollectionsS3Configuration(
 ) {
 
     @Bean
+    @Qualifier("inputBucket")
     fun inputBucket() = inputBucket
 
     @Bean
+    @Qualifier("inputBasePath")
     fun inputBasePath() = inputBasePath
 
     @Bean
+    @Qualifier("prefixPaths")
     fun prefixPaths() = prefixPaths?.split(",")
 
     @Bean
+    @Qualifier("filenameFormatRegexPattern")
     fun filenameFormatRegexPattern() = filenameFormatRegexPattern
 
     @Bean
+    @Qualifier("filenameFormatDataExtensionPattern")
     fun filenameFormatDataExtensionPattern() = filenameFormatDataExtensionPattern
 
     @Bean
+    @Qualifier("nameRegexPattern")
     fun nameRegexPattern() = nameRegexPattern
 }
