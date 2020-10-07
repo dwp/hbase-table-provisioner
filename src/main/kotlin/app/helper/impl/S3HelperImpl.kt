@@ -17,8 +17,14 @@ class S3HelperImpl(private val maxAttempts: Int,
     @Throws(S3Exception::class)
     override fun getListOfS3ObjectsResult(awsS3Client: AmazonS3, request: ListObjectsV2Request): ListObjectsV2Result {
 
-        var result = ListObjectsV2Result()
+        logger.info("Calling S3 with retry configuration",
+            "max_attempts" to "$maxAttempts",
+            "initial_backoff_millis" to "$initialBackoffMillis",
+            "backoff_multiplier" to "$backoffMultiplier",
+            "request" to "$request"
+        )
 
+        var result = ListObjectsV2Result()
         var success = false
         var attempts = 0
         var exception: Exception? = null

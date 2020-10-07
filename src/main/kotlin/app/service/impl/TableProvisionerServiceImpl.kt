@@ -19,7 +19,9 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
 
     override fun provisionHbaseTable() {
 
-        logger.info("Running provisioner for Hbase tables")
+        logger.info("Running provisioner for Hbase tables",
+            "region_target_size" to "$regionTargetSize",
+            "region_server_count" to "$regionServerCount")
 
         val collectionDetailsMap = s3ReaderService.getCollectionSummaries()
 
@@ -27,15 +29,19 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             logger.error("No collections to be created in Hbase")
             return
         }
+        logger.info("Found collections to be created in Hbase", "collection_count" to "${collectionDetailsMap.size}")
 
         val totalBytes = getTotalBytesForAllCollections(collectionDetailsMap)
-
         val totalRegions = regionTargetSize * regionServerCount
         val regionUnit = totalBytes / totalRegions
 
         logger.info("Provisioning tables for collections",
-                "number_of_collections" to collectionDetailsMap.size.toString(),
-                "region_unit" to regionUnit.toString())
+            "number_of_collections" to "${collectionDetailsMap.size}",
+            "region_target_size" to "$regionTargetSize",
+            "region_server_count" to "$regionServerCount",
+            "total_regions" to "$totalRegions",
+            "total_bytes" to "$totalBytes",
+            "region_unit" to regionUnit.toString())
 
         runBlocking {
             collectionDetailsMap.forEach {

@@ -23,12 +23,13 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     override fun getCollectionSummaries(): MutableMap<String, Long> {
 
         val collectionDetailsMap = mutableMapOf<String, Long>()
-
         logger.info("Prefix paths", "prefix_paths" to prefixPaths)
         if (prefixPaths.isNullOrBlank() || prefixPaths.equals("NOT_SET")) {
             logger.error("Prefix paths must be specified but was not", "prefix_paths" to prefixPaths)
             throw IllegalArgumentException("Prefix paths must be specified but was '$prefixPaths'")
         }
+
+
 
         prefixPaths.split(",").forEach { prefixPath ->
             logger.info("Getting collection details for source path", "prefix_path" to prefixPath)

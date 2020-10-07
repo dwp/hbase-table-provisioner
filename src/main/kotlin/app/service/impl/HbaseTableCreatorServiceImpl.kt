@@ -96,6 +96,6 @@ class HbaseTableCreatorServiceImpl(
     private fun hbaseTableName(name: String) = TableName.valueOf(name)
 
     companion object {
-        val logger = DataworksLogger.getLogger(CollectionsS3Configuration::class.toString())
+        val logger = DataworksLogger.getLogger(HbaseTableCreatorServiceImpl::class.toString())
     }
 }

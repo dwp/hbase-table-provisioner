@@ -22,7 +22,12 @@ data class S3Configuration(
     @Bean
     @Profile("AWS_S3")
     fun s3Client(): AmazonS3 {
-        logger.info("Connecting to AWS S3", "region" to clientRegion!!)
+        logger.info("Connecting to AWS S3",
+            "region" to clientRegion!!,
+            "max_attempts" to "${maxAttempts()}",
+            "initial_backoff_millis" to "${initialBackoffMillis()}",
+            "backoff_multiplier" to "${backoffMultiplier()}",
+        )
         val region = clientRegion!!.toLowerCase().replace("_", "-")
         val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
