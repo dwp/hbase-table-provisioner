@@ -29,8 +29,9 @@ After cloning this repo, please run:
 ## Notes about aws batch
 
 In Batch that we use in AWS, the `COLLECTIONS_PREFIX_PATHS` are specified as a Command argument, not an environment variable.
+We also set `CORRELATION_ID` to our concourse job number in batch.
 
-This is so that it can be dynamic on each run and not fixed in the Terraform.
+This is so that they can be dynamic on each run and not fixed in the Terraform.
 See `hbase-table-provisioner` in [docker-compose.yaml](docker-compose.yaml)
 
 ## Environment Variables
