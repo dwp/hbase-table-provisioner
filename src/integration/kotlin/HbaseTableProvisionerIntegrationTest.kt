@@ -22,7 +22,7 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         }
     }
 
-    private val expectedTables = listOf("accepted_data:address", "core:toDo")
+    private val expectedTables = listOf("accepted_data:address", "accepted_data:childrenCircumstances", "core:assessmentPeriod", "core:toDo", "crypto:encryptedData")
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
@@ -44,7 +44,6 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
     private suspend fun verifyHbase() {
         var waitSoFarSecs = 0
-        val shortInterval = 5
         val longInterval = 10
         val expectedTablesSorted = expectedTables.sorted()
         logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear; Expecting to create: $expectedTablesSorted")
