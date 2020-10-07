@@ -54,7 +54,6 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
         }
     }
 
-
     private fun getTotalBytesForAllCollections(collectionDetailsMap: MutableMap<String, Long>) = collectionDetailsMap.values.sum()
 
     private fun calculateCollectionRegionSize(regionUnit: Long, collectionSize: Long) = ceil(collectionSize.toDouble() / regionUnit).toInt()

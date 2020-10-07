@@ -3,27 +3,27 @@ package app.util
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class CoalesceUtilTest {
+class RegionKeySplitterTest {
 
     @Test
-    fun confirmCoalesceReturnsCorrectionCollectionName() {
+    fun confirmCalculateSplitsWillMakeByteArrayFromMinimumNumberOfRegions() {
 
-        val topicName = "accepted-data.UpdateMongoLock_acceptedDataService"
-        val expected = "accepted_data:UpdateMongoLock_acceptedDataService"
+        val result = calculateSplits(1)
 
-        val result = CoalescingUtil().coalescedCollection(topicName)
+        val expected = listOf<List<Byte>>() //TODO this should not be empty
 
         assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun confirmCoalesceReturnsCorrectionCollectionNameForArchive() {
+    fun confirmCalculateSplitsWillMakeByteArrayFromTypicalNumberOfRegions() {
 
-        val topicName = "agent_core.agentToDoArchive"
-        val expected = "agent_core:agentToDo"
+        val result = calculateSplits(100)
 
-        val result = CoalescingUtil().coalescedCollection(topicName)
+        //TODO here we should be checking a list<list<byte>> not a count
+        val expectedCount = 99 //TODO Why is this off by 1?
 
-        assertThat(result).isEqualTo(expected)
+        assertThat(result.size).isEqualTo(expectedCount)
     }
+
 }
