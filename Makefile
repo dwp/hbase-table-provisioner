@@ -85,9 +85,9 @@ build: build-base build-htp ## build main images
 build-base: ## build the base images which certain images extend.
 	@{ \
 		pushd docker; \
-		cp ../settings.gradle.kts ../gradle.properties . ; \
+		cp ../settings.gradle.kts ../gradle.properties ../build.gradle.kts . ; \
 		docker build --tag dwp-gradle-hbase-table-provisioner:latest --file ./gradle/Dockerfile . ; \
-		rm -rf settings.gradle.kts gradle.properties ; \
+		rm -rf settings.gradle.kts gradle.properties build.gradle.kts; \
 		popd; \
 	}
 
