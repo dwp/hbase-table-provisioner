@@ -101,12 +101,13 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
     private fun deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects: List<S3ObjectSummary>): MutableMap<String, Long> {
 
-        logger.info("Scrubbing S3 object key to reveal collection and topic name",
+        logger.info("Removing duplicates and calculating byte size",
             "collection_size" to filteredObjects.size.toString(),
             "name_regex_pattern" to nameRegexPattern
         )
 
         val topicByteSizeMap = mutableMapOf<String, Long>()
+        val topicS3ToCoalescedNames = mutableMapOf<String, String>()
 
         filteredObjects.forEach { collection ->
             val key = collection.key
@@ -119,11 +120,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
                 val (topicName) = it.destructured
                 val coalesced = CoalescingUtil().coalescedCollection(topicName)
-
-                logger.info("Topic name found by regex for collection scrubbing",
-                    "s3_topic_name" to topicName,
-                    "coalesced_topic_name" to coalesced
-                )
+                topicS3ToCoalescedNames[topicName] = coalesced
 
                 if (coalesced in topicByteSizeMap) {
                     topicByteSizeMap[coalesced] = topicByteSizeMap[coalesced]!! + collection.size
@@ -134,7 +131,12 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             }
         }
 
-        logger.info("Removed duplicates and calculated byte size", "deduplicated_collection_size" to topicByteSizeMap.size.toString())
+        logger.info(
+            "Removed duplicates and calculated byte size",
+            "deduplicated_collection_size" to topicByteSizeMap.size.toString(),
+            "s3_topic_names" to topicS3ToCoalescedNames.keys.sorted().toString(),
+            "coalesced_topic_names" to topicS3ToCoalescedNames.values.sorted().toString(),
+        )
 
         return topicByteSizeMap
     }
