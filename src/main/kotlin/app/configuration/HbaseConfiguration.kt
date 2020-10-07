@@ -39,12 +39,15 @@ data class HBaseConfiguration(
             setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries!!.toInt())
         }
 
-        logger.info("Timeout configuration",
-                "scanner" to configuration.get(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD),
-                "rpc" to configuration.get(HConstants.HBASE_RPC_READ_TIMEOUT_KEY),
-                "client" to configuration.get(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT))
-
-        logger.info("HBase Configuration loaded", "hbase_configuration" to configuration.toString())
+        logger.info("HBase Configuration",
+            "ZOOKEEPER_ZNODE_PARENT" to zookeeperParent!!,
+            "ZOOKEEPER_QUORUM" to  zookeeperQuorum!!,
+            "HBASE_ZOOKEEPER_PORT" to  zookeeperPort!!,
+            "HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD" to  clientScannerTimeoutPeriodMilliseconds!!,
+            "HBASE_CLIENT_OPERATION_TIMEOUT" to  clientOperationTimeoutMilliseconds!!,
+            "HBASE_RPC_READ_TIMEOUT_KEY" to  rpcReadTimeoutMilliseconds!!,
+            "HBASE_CLIENT_RETRIES_NUMBER" to  retries!!)
+        logger.info("HBase Configuration loaded")
 
         return configuration
     }
