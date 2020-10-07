@@ -19,4 +19,4 @@ RUN chown -R $USER.$USER . && chmod +x ./$APP_NAME.jar
 
 USER $USER
 
-ENTRYPOINT ["sh", "-c", "java -jar ./hbase-table-provisioner.jar \"$@\"", "--"]
+ENTRYPOINT ["sh", "-c", "java -jar ./hbase-table-provisioner.jar"]

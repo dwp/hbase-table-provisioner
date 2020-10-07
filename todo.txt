@@ -1,7 +1,0 @@
-
-
-Remove redundant filenameFormatDataExtensionPattern
-
-Update readme with application flow
-
-Add unit test in s3 reader to have multiple items in csv list to prove split et al

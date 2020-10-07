@@ -7,6 +7,13 @@ With the information of the total bytes for all collections, the application div
 For each collection, the total bytes of the collection is divided by the region unit to find the number of regions it should hold on the cluster. Larger size clusters receive a large number of regions compared to small regions.
 The number of regions a collection requires is then used against a byte map to find the region start & stop positions in bytecode. This information is used on the Hbase API to create the table and create the required splitting prior to a data load.
 
+## Outstanding Work
+- Create integration tests
+- Modify makefile & Docker compose to support integration tests
+- Complete README for instructions on how to run the application
+- Remove redundant filenameFormatDataExtensionPattern
+- Update readme with application flow
+- Add unit test in s3 reader to have multiple items in csv list to prove split et al
 
 ## Instructions for this repo
 
@@ -54,9 +61,3 @@ After cloning this repo, please run:
 | S3_INITIAL_BACKOFF_MILLIS                  | 1000                        | - |
 | S3_BACKOFF_MULTIPLIER                      | 2                           | - |
 | SPRING_PROFILES_ACTIVE                     | "LOCAL_S3" or "AWS_S3"      | - |
-
-
-## Outstanding Work
-- Create integration tests
-- Modify makefile & Docker compose to support integration tests
-- Complete README for instructions on how to run the application
