@@ -31,7 +31,7 @@ integration-test: ## Run the integration tests in a Docker container
 	echo "WIP"
 
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
-integration-all: integration-test
+integration-all: destroy up integration-test
 
 hbase-shell: ## Open an HBase shell onto the running HBase container
 	docker-compose run --rm hbase shell
