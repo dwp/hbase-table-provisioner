@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:16-jdk-alpine
 
 ARG APP_VERSION
 ENV APP_NAME=hbase-table-provisioner
@@ -13,7 +13,7 @@ WORKDIR $APP_HOME
 COPY ./build/libs/*.jar ./$APP_NAME.jar
 
 RUN addgroup $GROUP
-RUN useradd -g $GROUP $USER
+RUN adduser --disabled-password --ingroup $GROUP $USER
 
 RUN chown -R $USER.$USER . && chmod +x ./$APP_NAME.jar
 

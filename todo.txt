@@ -1,9 +1,7 @@
 
 
-Update env vars
 Remove redundant filenameFormatDataExtensionPattern
 
-
-Update test names to given when then
 Update readme with application flow
-Update getCollectionNamesAndSizesInPath in provisioner
+
+Add unit test in s3 reader to have multiple items in csv list to prove split et al

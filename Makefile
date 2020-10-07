@@ -28,10 +28,16 @@ local-test: ## Run the unit tests with gradle
 local-all: local-build local-test local-dist ## Build and test with gradle
 
 integration-test: ## Run the integration tests in a Docker container
-	echo "WIP"
+	@{ \
+		set +e ;\
+		docker stop htp-integration-test ;\
+		docker rm htp-integration-test ;\
+		set -e ;\
+	}
+	docker-compose -f docker-compose.yaml run --name htp-integration-test htp-integration-test gradle --no-daemon --rerun-tasks integration-test -x test -x unit
 
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
-integration-all: destroy up integration-test
+integration-all: destroy build up integration-test
 
 hbase-shell: ## Open an HBase shell onto the running HBase container
 	docker-compose run --rm hbase shell
@@ -60,8 +66,8 @@ s3-up: ## Bring up the S3 localstack service
 	}
 	docker-compose up --build s3-init
 
-up: local-all services ## Bring up Reconciliation in Docker with supporting services
-	docker-compose -f docker-compose.yaml up --build hbase-table-provisioner
+up: services ## Bring up Provisioner in Docker with supporting services
+	docker-compose -f docker-compose.yaml up hbase-table-provisioner
 
 restart: ## Restart HTP and all supporting services
 	docker-compose restart
@@ -73,4 +79,17 @@ destroy: down ## Bring down the HTP Docker container and services then delete al
 	docker network prune -f
 	docker volume prune -f
 
+build: build-base build-htp ## build main images
+	docker-compose build
 
+build-base: ## build the base images which certain images extend.
+	@{ \
+		pushd docker; \
+		cp ../settings.gradle.kts ../gradle.properties ../build.gradle.kts . ; \
+		docker build --tag dwp-gradle-hbase-table-provisioner:latest --file ./gradle/Dockerfile . ; \
+		rm -rf settings.gradle.kts gradle.properties build.gradle.kts; \
+		popd; \
+	}
+
+build-htp: local-all ## Build local jar file and HTP image
+	docker-compose -f docker-compose.yaml build hbase-table-provisioner
