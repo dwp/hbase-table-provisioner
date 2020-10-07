@@ -34,7 +34,7 @@ integration-test: ## Run the integration tests in a Docker container
 		docker rm htp-integration-test ;\
 		set -e ;\
 	}
-	docker-compose -f docker-compose.yaml run --name htp-integration-test htp-integration-test gradle --no-daemon --rerun-tasks htp-integration-test -x test -x unit
+	docker-compose -f docker-compose.yaml run --name htp-integration-test htp-integration-test gradle --no-daemon --rerun-tasks integration-test -x test -x unit
 
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
 integration-all: destroy build up integration-test
