@@ -22,7 +22,12 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         }
     }
 
-    private val expectedTables = listOf("accepted_data:address", "accepted_data:childrenCircumstances", "core:assessmentPeriod", "core:toDo", "crypto:encryptedData")
+    private val expectedTablesAndRegions = mapOf(
+        "accepted_data:address" to 4,
+        "accepted_data:childrenCircumstances" to 5,
+        "core:assessmentPeriod" to 6,
+        "core:toDo" to 7,
+        "crypto:encryptedData" to 8)
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
@@ -45,14 +50,17 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
     private suspend fun verifyHbase() {
         var waitSoFarSecs = 0
         val longInterval = 10
-        val expectedTablesSorted = expectedTables.sorted()
-        logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear; Expecting to create: $expectedTablesSorted")
+        val expectedTablesSorted = expectedTablesAndRegions.keys.sorted()
+        logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear with given regions",
+            "expected_tables_sorted" to "$expectedTablesSorted")
 
         hbaseConnection().use { hbase ->
             withTimeout(10.minutes) {
                 do {
                     val foundTablesSorted = testTables()
-                    logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear; Found ${foundTablesSorted.size}; Total of $waitSoFarSecs seconds elapsed")
+                    logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear",
+                        "found_tables_so_far" to "${foundTablesSorted.size}",
+                        "total_seconds_elapsed" to "$waitSoFarSecs")
                     delay(longInterval.seconds)
                     waitSoFarSecs += longInterval
                 }
