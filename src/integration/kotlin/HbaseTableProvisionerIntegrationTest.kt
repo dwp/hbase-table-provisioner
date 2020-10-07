@@ -61,7 +61,17 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
                         hbaseConnection().getTable(TableName.valueOf(tableName)).use { table ->
-                            logger.info("Found table", "table_name" to "${table.name}")
+
+                            val configs = mutableMapOf<String,String>()
+                            table.configuration.iterator().forEachRemaining { config ->
+                                configs[config.key] = config.value
+                            }
+
+                            logger.info("Found table",
+                                "table_name" to "${table.name}",
+                                "table_configuration" to "${configs}",
+                                "table_descriptor" to table.tableDescriptor.toStringCustomizedValues(),
+                            )
                         }
                     }
                 }
