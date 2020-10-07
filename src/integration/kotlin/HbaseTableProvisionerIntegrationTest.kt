@@ -23,11 +23,11 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
     }
 
     private val expectedTablesAndRegions = mapOf(
-        "accepted_data:address" to 4,
-        "accepted_data:childrenCircumstances" to 5,
-        "core:assessmentPeriod" to 6,
-        "core:toDo" to 7,
-        "crypto:encryptedData" to 8)
+        "accepted_data:address" to 0,
+        "accepted_data:childrenCircumstances" to 0,
+        "core:assessmentPeriod" to 0,
+        "core:toDo" to 0,
+        "crypto:encryptedData" to 0)
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
