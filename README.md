@@ -8,9 +8,7 @@ For each collection, the total bytes of the collection is divided by the region 
 The number of regions a collection requires is then used against a byte map to find the region start & stop positions in bytecode. This information is used on the Hbase API to create the table and create the required splitting prior to a data load.
 
 ## Outstanding Work
-- Create integration tests
-- Modify makefile & Docker compose to support integration tests
-- Complete README for instructions on how to run the application
+- Update integration tests to assert table settings
 - Remove redundant filenameFormatDataExtensionPattern
 - Update readme with application flow
 - Add unit test in s3 reader to have multiple items in csv list to prove split et al
@@ -18,13 +16,34 @@ The number of regions a collection requires is then used against a byte map to f
 ## Instructions for this repo
 
 After cloning this repo, please run:  
-`make bootstrap`
+```
+make bootstrap
+```
 
 ## Instructions for running
 
+If you just want to run the app you can execute this 
+```
+make build up
+```
+
 ### Integration tests
 
+To rebuild everything and run the unit and integration tests, run this
+```
+make integration-all
+```
+
 ### Running locally
+
+You can run the application in your IDE.
+First, start up all the required containers
+```
+make build up
+```
+
+Then make an app runner to execute `src/main/kotlin/app/App.kt`.
+This will run off the local [application.properties](application.properties) provided for this very purpose. 
 
 ## Notes about aws batch
 

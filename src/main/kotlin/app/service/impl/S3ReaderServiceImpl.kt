@@ -23,7 +23,6 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     override fun getCollectionSummaries(): MutableMap<String, Long> {
 
         val collectionDetailsMap = mutableMapOf<String, Long>()
-
         logger.info("Prefix paths", "prefix_paths" to prefixPaths)
         if (prefixPaths.isNullOrBlank() || prefixPaths.equals("NOT_SET")) {
             logger.error("Prefix paths must be specified but was not", "prefix_paths" to prefixPaths)
@@ -55,16 +54,18 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
                 request.continuationToken = results.nextContinuationToken
 
                 logger.info("Got list of S3 objects for cluster",
-                        "bucket" to inputBucket,
-                        "s3_prefix" to fullBasePath,
-                        "results_size" to results.objectSummaries?.size.toString())
+                    "bucket" to inputBucket,
+                    "s3_prefix" to fullBasePath,
+                    "results_size" to results.objectSummaries?.size.toString())
 
-            } while (results != null && results.isTruncated)
+            }
+            while (results != null && results.isTruncated)
 
             val filteredObjects = filterResultsForDataFilesOnly(objectSummaries)
 
             return deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects)
-        } catch (e: Exception) {
+        }
+        catch (e: Exception) {
             logger.error("Error getting collection from S3", e)
             return mutableMapOf()
         }
@@ -73,8 +74,8 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     private fun filterResultsForDataFilesOnly(s3Results: MutableList<S3ObjectSummary>): List<S3ObjectSummary> {
 
         logger.info("Filtering over collection results from S3",
-                "result_size" to s3Results.size.toString(),
-                "filtering_regex" to filenameFormatRegexPattern
+            "result_size" to s3Results.size.toString(),
+            "filtering_regex" to filenameFormatRegexPattern
         )
 
         val matchedConditionObjects = mutableListOf<S3ObjectSummary>()
@@ -82,7 +83,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         s3Results.forEach { collectionObject ->
 
             logger.debug("Filtering for a collection object",
-                    "collection_object_key" to collectionObject.key
+                "collection_object_key" to collectionObject.key
             )
 
             if (filenameFormatRegexPattern.toRegex().containsMatchIn(collectionObject.key)) {
@@ -91,8 +92,8 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         }
 
         logger.info("Matched results via filtering",
-                "matchedConditionObjects" to matchedConditionObjects.size.toString(),
-                "filtering_regex" to filenameFormatRegexPattern
+            "matchedConditionObjects" to matchedConditionObjects.size.toString(),
+            "filtering_regex" to filenameFormatRegexPattern
         )
 
         return matchedConditionObjects
@@ -101,8 +102,8 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     private fun deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects: List<S3ObjectSummary>): MutableMap<String, Long> {
 
         logger.info("Scrubbing S3 object key to reveal collection and topic name",
-                "collection_size" to filteredObjects.size.toString(),
-                "name_regex_pattern" to nameRegexPattern
+            "collection_size" to filteredObjects.size.toString(),
+            "name_regex_pattern" to nameRegexPattern
         )
 
         val topicByteSizeMap = mutableMapOf<String, Long>()
@@ -111,7 +112,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             val key = collection.key
 
             logger.info("De-duping collection object",
-                    "collection_object_key" to key
+                "collection_object_key" to key
             )
 
             Regex(nameRegexPattern).find(key)?.let {
@@ -120,11 +121,14 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
                 val coalesced = CoalescingUtil().coalescedCollection(topicName)
 
                 logger.info("Topic name found by regex for collection scrubbing",
-                "topic_name" to coalesced)
+                    "s3_topic_name" to topicName,
+                    "coalesced_topic_name" to coalesced
+                )
 
                 if (coalesced in topicByteSizeMap) {
                     topicByteSizeMap[coalesced] = topicByteSizeMap[coalesced]!! + collection.size
-                } else {
+                }
+                else {
                     topicByteSizeMap[coalesced] = collection.size
                 }
             }
