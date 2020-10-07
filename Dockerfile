@@ -10,12 +10,12 @@ ENV GROUP=$USER
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 
+COPY entrypoint.sh .
+RUN chmod a+x entrypoint.sh
+
 RUN addgroup $GROUP
 RUN adduser --disabled-password --ingroup $GROUP $USER
 USER $USER
-
-COPY entrypoint.sh .
-RUN chmod a+x entrypoint.sh
 
 ENTRYPOINT ["sh", "-c", "./entrypoint.sh \"$@\"", "--"]
 
