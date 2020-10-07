@@ -131,9 +131,10 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             }
         }
 
+        // single collection names log for HDl and HDI to use - do not remove this plz thx
         logger.info(
             "Removed duplicates and calculated byte size",
-            "deduplicated_collection_size" to topicByteSizeMap.size.toString(),
+            "deduped_collection_size" to topicByteSizeMap.size.toString(),
             "s3_topic_names" to topicS3ToCoalescedNames.keys.sorted().toString(),
             "coalesced_topic_names" to topicS3ToCoalescedNames.values.sorted().toString(),
         )
