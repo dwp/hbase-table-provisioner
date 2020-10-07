@@ -1,6 +1,5 @@
-package util
+package app.util
 
-import app.util.CoalescingUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

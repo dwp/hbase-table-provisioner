@@ -1,4 +1,4 @@
-package helper.impl
+package app.helper.impl
 
 import app.exception.S3Exception
 import app.helper.impl.S3HelperImpl

@@ -24,7 +24,7 @@ services:
       HBASE_RETRIES: "3"
       HBASE_COLUMN_FAMILY: "cf"
       HBASE_COLUMN_QUALIFIER: "record"
-      HBASE_REGION_REPLICATION_COUNT: 3
+      HBASE_REGION_REPLICATION_COUNT: "3"
       HBASE_REGION_TARGET_SIZE: "12"
       HBASE_REGION_SERVER_COUNT: "8"
       HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
@@ -34,10 +34,10 @@ services:
       COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '^[\w]+\-[\w]+\/[\w]+\/[\w]+\/\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])\/[\w-]+\.[\w-]+\.[0-9]+\.json.gz.enc'
       COLLECTIONS_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
       S3_CLIENT_REGION: "eu-west-2"
-      S3_MAX_ATTEMPTS: 5
-      S3_INITIAL_BACKOFF_MILLIS: 1000
-      S3_BACKOFF_MULTIPLIER: 2
-      SPRING_PROFILES_ACTIVE: LOCAL_S3
+      S3_MAX_ATTEMPTS: "5"
+      S3_INITIAL_BACKOFF_MILLIS: "1000"
+      S3_BACKOFF_MULTIPLIER: "2"
+      SPRING_PROFILES_ACTIVE: "LOCAL_S3"
 
   hbase:
     image: harisekhon/hbase:1.4
@@ -58,36 +58,7 @@ services:
 #      - hbase-table-provisioner
 #    command: "gradle --rerun-tasks integration"
 #    environment:
-#      CONTAINER_VERSION: "latest"
-#      ENVIRONMENT: "local-dev"
-#      APPLICATION: "htp-integration-test"
-#      COMPONENT: "integration-test"
-#      APP_VERSION: "test"
-#      LOG_LEVEL: "DEBUG"
-#      HBASE_ZOOKEEPER_PARENT: "/hbase"
-#      HBASE_ZOOKEEPER_PORT: "2181"
-#      HBASE_ZOOKEEPER_QUORUM: "hbase"
-#      HBASE_RPC_TIMEOUT_MILLISECONDS: "1200"
-#      HBASE_CLIENT_TIMEOUT_MS: "1200"
-#      HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_MS: "12000"
-#      HBASE_OPERATION_TIMEOUT_MILLISECONDS": "1800"
-#      HBASE_PAUSE_MILLISECONDS: "50"
-#      HBASE_RETRIES": "3"
-#      HBASE_COLUMN_FAMILY: "cf"
-#      HBASE_COLUMN_QUALIFIER: "record"
-#      HBASE_REGION_REPLICATION_COUNT: 3
-#      HBASE_REGION_TARGET_SIZE: "200"
-#      HBASE_REGION_SERVER_COUNT: "150"
-#      HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
-#      COLLECTIONS_INPUT_BUCKET: "s3://bucket"
-#      COLLECTIONS_INPUT_BASE_PATH: "business-data/mongo/"
-#      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23"
-#      COLLECTIONS_FILENAME_FORMAT_REGEX: '[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc'
-#      COLLECTIONS_COLLECTION_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
-#      S3_CLIENT_REGION: "eu-west-2"
-#      S3_MAX_ATTEMPTS: 5
-#      S3_INITIAL_BACKOFF_MILLIS: 1000
-#      S3_BACKOFF_MULTIPLIER: 2
+#      COPY FROM ABOVE
 
   aws-s3:
     image: localstack/localstack
