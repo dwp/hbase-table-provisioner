@@ -10,6 +10,8 @@ ENV GROUP=$USER
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 
+COPY entrypoint.sh .
+RUN chmod a+x entrypoint.sh
 COPY ./build/libs/*.jar ./$APP_NAME.jar
 
 RUN addgroup $GROUP
@@ -19,4 +21,4 @@ RUN chown -R $USER.$USER . && chmod +x ./$APP_NAME.jar
 
 USER $USER
 
-ENTRYPOINT ["sh", "-c", "java -jar ./hbase-table-provisioner.jar \"$@\"", "--"]
+ENTRYPOINT ["sh", "-c", "./entrypoint.sh \"$@\"", "--"]

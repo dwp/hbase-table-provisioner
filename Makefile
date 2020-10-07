@@ -17,10 +17,10 @@ git-hooks: ## Set up hooks in .githooks
 	git config core.hooksPath .githooks \
 
 local-build: ## Build with gradle
-	gradle clean :unit build -x test
+	gradle clean build -x test -x unit
 
 local-dist: ## Assemble distribution files in build/dist with gradle
-	gradle assembleDist
+	gradle assembleDist -x test -x unit
 
 local-test: ## Run the unit tests with gradle
 	gradle --rerun-tasks unit
@@ -66,8 +66,10 @@ s3-up: ## Bring up the S3 localstack service
 	}
 	docker-compose up --build s3-init
 
-up: services ## Bring up Provisioner in Docker with supporting services
+up-htp:  ## Bring up Provisioner in Docker
 	docker-compose -f docker-compose.yaml up hbase-table-provisioner
+
+up: services up-htp ## Bring up Provisioner in Docker with supporting services
 
 restart: ## Restart HTP and all supporting services
 	docker-compose restart

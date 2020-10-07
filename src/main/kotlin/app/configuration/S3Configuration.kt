@@ -23,13 +23,13 @@ data class S3Configuration(
     @Profile("AWS_S3")
     fun s3Client(): AmazonS3 {
         logger.info("Connecting to AWS S3", "region" to clientRegion!!)
-
+        val region = clientRegion!!.toLowerCase().replace("_", "-")
         val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-                .withRegion(Regions.fromName(clientRegion!!.toLowerCase().replace("_", "-")))
+                .withRegion(Regions.fromName(region))
                 .build()
 
-        logger.info("Connected to AWS S3 Client", "region" to clientRegion!!)
+        logger.info("Connected to AWS S3 Client", "region" to region)
 
         return s3Client
     }

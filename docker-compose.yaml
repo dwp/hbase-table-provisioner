@@ -7,6 +7,8 @@ services:
     container_name: hbase-table-provisioner
     depends_on:
       - hbase
+    # This command is to match what we do in AWS batch
+    command: ["adb/2020-06-23,cdb/2020-04-01", "dummy-correlation-id"]
     environment:
       CONTAINER_VERSION: "latest"
       ENVIRONMENT: "local-dev"
@@ -30,7 +32,6 @@ services:
       HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
       COLLECTIONS_INPUT_BUCKET: "input-bucket"
       COLLECTIONS_INPUT_BASE_PATH: "business-data/mongo"
-      COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23,cdb/2020-04-01"
       COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '^[\w]+\-[\w]+\/[\w]+\/[\w]+\/\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])\/[\w-]+\.[\w-]+\.[0-9]+\.json.gz.enc'
       COLLECTIONS_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
       S3_CLIENT_REGION: "eu-west-2"
@@ -62,6 +63,7 @@ services:
       COMPONENT: "jar-file"
       APP_VERSION: "integration"
       LOG_LEVEL: "INFO"
+      CORRELATION_ID: "integration-test"
       HBASE_ZOOKEEPER_PARENT: "/hbase"
       HBASE_ZOOKEEPER_PORT: "2181"
       HBASE_ZOOKEEPER_QUORUM: "hbase"
@@ -78,6 +80,7 @@ services:
       HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
       COLLECTIONS_INPUT_BUCKET: "input-bucket"
       COLLECTIONS_INPUT_BASE_PATH: "business-data/mongo"
+      # This is not the main container, it is a gradle one so this must be a env var here
       COLLECTIONS_PREFIX_PATHS: "adb/2020-06-23,cdb/2020-04-01"
       COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '^[\w]+\-[\w]+\/[\w]+\/[\w]+\/\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])\/[\w-]+\.[\w-]+\.[0-9]+\.json.gz.enc'
       COLLECTIONS_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
