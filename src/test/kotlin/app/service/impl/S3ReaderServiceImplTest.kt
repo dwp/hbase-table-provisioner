@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test
 class S3ReaderServiceImplTest {
 
     @Test
-    fun shouldReturnListOfCollectionSummariesWhenRequestingFromS3() {
+    fun shouldReturnListOfOneCollectionSummariesWhenRequestingMinimumFilesFromS3() {
 
         val bucket = "bucket"
         val basePath = "/business/mongo"
-        val sourceDatabasePaths = listOf("adb/2020-06-23")
+        val sourceDatabasePaths = "adb/2020-06-23"
         val filenameFormatRegexPattern = "[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc"
         val collectionNameRegexPattern = "([-\\w]+\\.[-.\\w]+)\\.[0-9]+\\.json\\.gz\\.enc"
 
@@ -53,6 +53,6 @@ class S3ReaderServiceImplTest {
     }
 
     private fun service(s3Client: AmazonS3, s3HelperMock: S3HelperImpl, bucket: String, basePath: String,
-                        sourceDatabasePaths: List<String>, filenameFormatRegexPattern: String, collectionNameRegexPattern: String)
+                        sourceDatabasePaths: String, filenameFormatRegexPattern: String, collectionNameRegexPattern: String)
             = S3ReaderServiceImpl(s3Client, s3HelperMock, bucket, basePath, sourceDatabasePaths, filenameFormatRegexPattern, "", collectionNameRegexPattern)
 }

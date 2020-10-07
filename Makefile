@@ -31,7 +31,7 @@ integration-test: ## Run the integration tests in a Docker container
 	echo "WIP"
 
 .PHONY: integration-all ## Build and Run all the tests in containers from a clean start
-integration-all: integration-test
+integration-all: destroy up integration-test
 
 hbase-shell: ## Open an HBase shell onto the running HBase container
 	docker-compose run --rm hbase shell
@@ -60,8 +60,8 @@ s3-up: ## Bring up the S3 localstack service
 	}
 	docker-compose up --build s3-init
 
-up: services ## Bring up Reconciliation in Docker with supporting services
-	docker-compose -f docker-compose.yaml up --build hbase_table_provisioner
+up: local-all services ## Bring up Reconciliation in Docker with supporting services
+	docker-compose -f docker-compose.yaml up --build hbase-table-provisioner
 
 restart: ## Restart HTP and all supporting services
 	docker-compose restart

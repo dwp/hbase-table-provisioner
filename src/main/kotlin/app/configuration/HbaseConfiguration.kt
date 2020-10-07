@@ -7,7 +7,6 @@ import org.apache.hadoop.hbase.client.ConnectionFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Configuration
@@ -16,9 +15,9 @@ data class HBaseConfiguration(
         var zookeeperParent: String? = "NOT_SET",
         var zookeeperQuorum: String? = "NOT_SET",
         var zookeeperPort: String? = "NOT_SET",
-        var clientScannerTimeoutPeriodMs: String? = "NOT_SET",
-        var clientTimeoutMs: String? = "NOT_SET",
-        var rpcReadTimeoutMs: String? = "NOT_SET",
+        var clientScannerTimeoutPeriodMilliseconds: String? = "NOT_SET",
+        var clientOperationTimeoutMilliseconds: String? = "NOT_SET",
+        var rpcReadTimeoutMilliseconds: String? = "NOT_SET",
         var retries: String? = "NOT_SET",
         var columnFamily: String? = "NOT_SET",
         var columnQualifier: String? = "NOT_SET",
@@ -31,13 +30,13 @@ data class HBaseConfiguration(
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
 
         val configuration = org.apache.hadoop.conf.Configuration().apply {
-            set(HConstants.ZOOKEEPER_ZNODE_PARENT, zookeeperParent ?: "NOPE")
-            set(HConstants.ZOOKEEPER_QUORUM, zookeeperQuorum ?: "NOPE")
-            setInt("hbase.zookeeper.port", zookeeperPort?.toInt() ?: 666)
-            setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, clientScannerTimeoutPeriodMs?.toInt() ?: 666)
-            setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, clientTimeoutMs?.toInt() ?: 666)
-            setInt(HConstants.HBASE_RPC_READ_TIMEOUT_KEY, rpcReadTimeoutMs?.toInt() ?: 666)
-            setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries?.toInt() ?: 666)
+            set(HConstants.ZOOKEEPER_ZNODE_PARENT, zookeeperParent!!)
+            set(HConstants.ZOOKEEPER_QUORUM, zookeeperQuorum!!)
+            setInt("hbase.zookeeper.port", zookeeperPort!!.toInt())
+            setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, clientScannerTimeoutPeriodMilliseconds!!.toInt())
+            setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, clientOperationTimeoutMilliseconds!!.toInt())
+            setInt(HConstants.HBASE_RPC_READ_TIMEOUT_KEY, rpcReadTimeoutMilliseconds!!.toInt())
+            setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, retries!!.toInt())
         }
 
         logger.info("Timeout configuration",
@@ -88,13 +87,13 @@ data class HBaseConfiguration(
     fun columnQualifier() = columnQualifier!!
 
     @Bean
-    fun regionReplicationCount() = regionReplicationCount!!.toIntOrNull()
+    fun regionReplicationCount() = regionReplicationCount!!.toInt()
 
     @Bean
-    fun regionTargetSize() = regionTargetSize!!.toIntOrNull()
+    fun regionTargetSize() = regionTargetSize!!.toInt()
 
     @Bean
-    fun regionServerCount() = regionServerCount!!.toIntOrNull()
+    fun regionServerCount() = regionServerCount!!.toInt()
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
