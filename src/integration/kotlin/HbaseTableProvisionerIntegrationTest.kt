@@ -8,8 +8,8 @@ import kotlin.time.seconds
 class HbaseTableProvisionerIntegrationTest : StringSpec() {
     init {
         "Collections are provisioned as tables into Hbase" {
-            logger.info(" WIP: Waiting for records to be reconciled")
-            delay(1.seconds)
+            logger.info(" WIP: Waiting for records to be provisioned")
+            delay(5.seconds)
             logger.info(" WIP: Done")
         }
     }
