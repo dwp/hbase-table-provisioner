@@ -1,6 +1,7 @@
 package app.util
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class RegionKeySplitterTest {
@@ -27,4 +28,31 @@ class RegionKeySplitterTest {
         assertThat(humanReadableResult.toString()).isEqualTo("[\\x33\\x34, \\x66\\x67, \\x99\\x9A, \\xCC\\xCD]")
     }
 
+    @Test
+    fun splitsAreEquallySized() {
+
+        for (regionCount in 1 .. 10_000) {
+            val result = calculateSplits(regionCount)
+
+            val gaps = (result.indices).map {
+                val position1 = if (it == 0) 0 else position(result[it - 1])
+                val position2 = position(result[it])
+                position2 - position1
+            }
+
+            val sizes = (256 * 256) / regionCount
+            val remainder = (256 * 256) % regionCount
+
+            for (i in 0 until remainder) {
+                assertEquals(sizes + 1, gaps[i])
+            }
+
+            for (i in remainder until gaps.size - 1) {
+                assertEquals(sizes, gaps[i])
+            }
+        }
+    }
+
+    private fun position(digits: ByteArray): Int = toUnsigned(digits[0]) * 256 + toUnsigned(digits[1])
+    private fun toUnsigned(byte: Byte): Int = if (byte < 0) (byte + 256) else byte.toInt()
 }
