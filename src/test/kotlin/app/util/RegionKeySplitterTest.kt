@@ -31,12 +31,12 @@ class RegionKeySplitterTest {
     @Test
     fun splitsAreEquallySized() {
         for (regionCount in 1 .. 10_000) {
-            with (calculateSplits(regionCount)) {
+            calculateSplits(regionCount).let { splits ->
                 val expectedSize = (256 * 256) / regionCount
                 val remainder = (256 * 256) % regionCount
-                gaps(this).run {
-                    indices.forEach {
-                        assertEquals(expectedSize + if (it < remainder) 1 else 0, this[it])
+                gaps(splits).let { gaps ->
+                    gaps.indices.forEach {
+                        assertEquals(expectedSize + if (it < remainder) 1 else 0, gaps[it])
                     }
                 }
             }
