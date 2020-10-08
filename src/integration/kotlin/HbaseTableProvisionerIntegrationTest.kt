@@ -45,7 +45,7 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         val tables = hbaseConnection().admin.listTableNames()
             .map(TableName::getNameAsString)
             .sorted()
-        logger.info("...hbase tables", "tables_found" to "${tables.size}", "all_tables" to "$tables")
+        logger.info("...hbase tables", "tables_found" to "${tables.size}", "all_table_names" to "$tables")
         return tables
     }
 
@@ -58,34 +58,51 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
         val foundTablesWithRegions = mutableMapOf<String, Int>()
 
-        withTimeout(10.minutes) {
-            do {
-                val foundTablesSorted = testTables()
-                logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear",
-                    "found_tables_so_far" to "${foundTablesSorted.size}",
-                    "total_seconds_elapsed" to "$waitSoFarSecs")
-                delay(longInterval.seconds)
-                waitSoFarSecs += longInterval
-            }
-            while (expectedTablesSorted.keys.toSet() != foundTablesSorted.toSet())
+        hbaseConnection().use { hbase ->
+            withTimeout(10.minutes) {
+                do {
+                    val foundTablesSorted = testTables()
+                    logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear",
+                        "found_tables_so_far" to "${foundTablesSorted.size}",
+                        "total_seconds_elapsed" to "$waitSoFarSecs")
+                    delay(longInterval.seconds)
+                    waitSoFarSecs += longInterval
+                }
+                while (expectedTablesSorted.keys.toSet() != foundTablesSorted.toSet())
 
-            testTables().forEach { tableName ->
-                launch(Dispatchers.IO) {
-                    val tableRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName))
-                    val numberRegionsWithReplicas = tableRegions.size
-                    val numberRegions = tableRegions
-                        .filter {
-                            //only region replica 0, which might have this set to null
-                            it.regionId == 0L
-                        }.size
+                testTables().forEach { tableName ->
+                    launch(Dispatchers.IO) {
+                        val tableRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName))
+                        val numberRegionsWithReplicas = tableRegions.size
+                        logger.info("Found table",
+                            "table_name" to tableName,
+                            "number_regions_with_replicas" to "$numberRegionsWithReplicas"
+                        )
 
-                    foundTablesWithRegions[tableName] = numberRegions
-                    logger.info("Found table",
-                        "table_name" to tableName,
-                        "number_regions" to "$numberRegions",
-                        "number_regions_with_replicas" to "$numberRegionsWithReplicas",
-                        "found_replicas" to "${numberRegionsWithReplicas/numberRegions}"
-                    )
+                        tableRegions.forEach { regionInfo ->
+                            logger.info(
+                                "Found table region",
+                                "table_name" to tableName,
+                                "region_id" to "$regionInfo.regionId",
+                            )
+                        }
+
+                        //numberRegionReplicas
+
+//                    val numberRegions = tableRegions
+//                        .filter {
+//                            //only region replica 0, which might have this set to null
+//                            it.regionId == 0L
+//                        }.size
+//
+//                    foundTablesWithRegions[tableName] = numberRegions
+//                    logger.info("Found table",
+//                        "table_name" to tableName,
+//                        "number_regions" to "$numberRegions",
+//                        "number_regions_with_replicas" to "$numberRegionsWithReplicas",
+//                        "found_replicas" to "${numberRegionsWithReplicas/numberRegions}"
+//                    )
+                    }
                 }
             }
         }
