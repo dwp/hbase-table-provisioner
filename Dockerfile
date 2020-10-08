@@ -7,18 +7,18 @@ ENV APP_HOME=/opt/$APP_NAME
 ENV USER=htp
 ENV GROUP=$USER
 
+ENTRYPOINT ["sh", "-c", "./entrypoint.sh \"$@\"", "--"]
+
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
+
+RUN addgroup $GROUP
+RUN adduser --disabled-password --ingroup $GROUP $USER
 
 COPY entrypoint.sh .
 RUN chmod a+x entrypoint.sh
 COPY ./build/libs/*.jar ./$APP_NAME.jar
 
-RUN addgroup $GROUP
-RUN adduser --disabled-password --ingroup $GROUP $USER
-
 RUN chown -R $USER.$USER . && chmod +x ./$APP_NAME.jar
 
 USER $USER
-
-ENTRYPOINT ["sh", "-c", "./entrypoint.sh \"$@\"", "--"]
