@@ -2,6 +2,7 @@ package app.service.impl
 
 import app.service.TableProvisionerService
 import app.util.calculateSplits
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Qualifier
@@ -23,7 +24,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             "region_target_size" to "$regionTargetSize",
             "region_server_count" to "$regionServerCount")
 
-        val collectionDetailsMap = s3ReaderService.getCollectionSummaries()
+        val collectionDetailsMap: MutableMap<String, Long> = s3ReaderService.getCollectionSummaries()
 
         if (collectionDetailsMap.isEmpty()) {
             logger.error("No collections to be created in Hbase")
@@ -43,12 +44,16 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             "total_bytes" to "$totalBytes",
             "region_unit" to regionUnit.toString())
 
-        runBlocking {
-            collectionDetailsMap.forEach {
-                launch {
-                    val collectionRegionSize = calculateCollectionRegionSize(regionUnit, it.value)
-                    val splits = calculateSplits(collectionRegionSize)
-                    hbaseTableCreatorServiceImpl.createHbaseTableFromProps(it.key, collectionRegionSize, splits)
+        val split = collectionDetailsMap.entries.chunked(10)
+
+        split.forEach {
+            runBlocking {
+                it.forEach { (collectionName, size) ->
+                    launch(Dispatchers.IO) {
+                        val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
+                        val splits = calculateSplits(collectionRegionSize)
+                        hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
+                    }
                 }
             }
         }

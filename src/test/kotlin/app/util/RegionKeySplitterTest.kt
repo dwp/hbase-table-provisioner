@@ -20,7 +20,7 @@ class RegionKeySplitterTest {
     }
 
     private fun expectedSize(regionCount: Int, index: Int) =
-        minimumSize(regionCount) + if (index < remainder(regionCount)) 1 else 0
+            minimumSize(regionCount) + if (index < remainder(regionCount)) 1 else 0
 
     private fun gaps(splits: List<ByteArray>) =
             splits.indices.map {
