@@ -61,7 +61,6 @@ class HbaseTableCreatorServiceImpl(
         }
 
         hbaseConnection.admin.createTable(hbaseTable, splits.toTypedArray())
-
         logger.info("Created Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
     }
 
