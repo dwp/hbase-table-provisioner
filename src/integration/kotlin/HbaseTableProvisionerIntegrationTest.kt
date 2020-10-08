@@ -23,6 +23,7 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         }
     }
 
+    private val numberRegionReplicas = 3
     private val expectedTablesAndRegions = mapOf(
         "accepted_data:address" to 3, //1
         "accepted_data:childrenCircumstances" to 3, //1
@@ -70,7 +71,9 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
             testTables().forEach { tableName ->
                 launch(Dispatchers.IO) {
-                    val numberRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName))
+                    val tableRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName))
+                    val numberRegionsWithReplicas = tableRegions.size
+                    val numberRegions = tableRegions
                         .filter {
                             //only region replica 0, which might have this set to null
                             it.regionId == 0L
@@ -79,7 +82,9 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
                     foundTablesWithRegions[tableName] = numberRegions
                     logger.info("Found table",
                         "table_name" to tableName,
-                        "number_regions" to "$numberRegions"
+                        "number_regions" to "$numberRegions",
+                        "number_regions_with_replicas" to "$numberRegionsWithReplicas",
+                        "found_replicas" to "${numberRegionsWithReplicas/numberRegions}"
                     )
                 }
             }
