@@ -34,21 +34,17 @@ class RegionKeySplitterTest {
         for (regionCount in 1 .. 10_000) {
             val result = calculateSplits(regionCount)
 
-            val gaps = (result.indices).map {
+            val gaps = result.indices.map {
                 val position1 = if (it == 0) 0 else position(result[it - 1])
                 val position2 = position(result[it])
                 position2 - position1
             }
 
-            val sizes = (256 * 256) / regionCount
+            val expectedSize = (256 * 256) / regionCount
             val remainder = (256 * 256) % regionCount
 
-            for (i in 0 until remainder) {
-                assertEquals(sizes + 1, gaps[i])
-            }
-
-            for (i in remainder until gaps.size - 1) {
-                assertEquals(sizes, gaps[i])
+            gaps.indices.forEach {
+                assertEquals(expectedSize + if (it < remainder) 1 else 0, gaps[it])
             }
         }
     }
