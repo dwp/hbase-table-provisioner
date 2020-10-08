@@ -51,35 +51,32 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
     private suspend fun verifyHbase() {
         var waitSoFarSecs = 0
         val longInterval = 10
-        val expectedTablesSorted = expectedTablesAndRegions.keys.sorted()
+        val expectedTablesSorted = expectedTablesAndRegions.toSortedMap()
         logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear with given regions",
             "expected_tables_sorted" to "$expectedTablesSorted")
 
         val foundTablesWithRegions = mutableMapOf<String, Int>()
 
-        hbaseConnection().use { hbase ->
-            withTimeout(10.minutes) {
-                do {
-                    val foundTablesSorted = testTables()
-                    logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear",
-                        "found_tables_so_far" to "${foundTablesSorted.size}",
-                        "total_seconds_elapsed" to "$waitSoFarSecs")
-                    delay(longInterval.seconds)
-                    waitSoFarSecs += longInterval
-                }
-                while (expectedTablesSorted.toSet() != foundTablesSorted.toSet())
+        withTimeout(10.minutes) {
+            do {
+                val foundTablesSorted = testTables()
+                logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear",
+                    "found_tables_so_far" to "${foundTablesSorted.size}",
+                    "total_seconds_elapsed" to "$waitSoFarSecs")
+                delay(longInterval.seconds)
+                waitSoFarSecs += longInterval
+            }
+            while (expectedTablesSorted.keys.toSet() != foundTablesSorted.toSet())
 
-                testTables().forEach { tableName ->
-                    launch(Dispatchers.IO) {
-                        val numberRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName)).size
-                        foundTablesWithRegions[tableName] = numberRegions
-                        logger.info("Found table",
-                            "table_name" to "$tableName",
-                            "number_regions" to "$numberRegions"
-                        )
-                    }
+            testTables().forEach { tableName ->
+                launch(Dispatchers.IO) {
+                    val numberRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName)).size
+                    foundTablesWithRegions[tableName] = numberRegions
+                    logger.info("Found table",
+                        "table_name" to tableName,
+                        "number_regions" to "$numberRegions"
+                    )
                 }
-
             }
         }
 
