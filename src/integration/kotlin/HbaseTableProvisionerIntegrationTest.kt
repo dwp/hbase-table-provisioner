@@ -68,7 +68,7 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
-                        hbaseConnection().getTable(TableName.valueOf(tableName)).use { table ->
+                        hbase.getTable(TableName.valueOf(tableName)).use { table ->
 
                             val configs = mutableMapOf<String,String>()
                             table.configuration.iterator().forEachRemaining { config ->
