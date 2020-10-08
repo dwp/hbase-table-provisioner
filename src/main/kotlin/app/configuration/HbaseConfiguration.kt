@@ -25,7 +25,7 @@ data class HBaseConfiguration(
         var regionReplicationCount: String? = "NOT_SET",
         var regionTargetSize: String? = "NOT_SET",
         var regionServerCount: String? = "NOT_SET",
-        var chunkSize: Int = 10) {
+        var chunkSize: String? = "NOT_SET") {
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
 
@@ -99,7 +99,7 @@ data class HBaseConfiguration(
     fun regionServerCount() = regionServerCount!!.toInt()
 
     @Bean
-    fun chunkSize() = chunkSize
+    fun chunkSize() = chunkSize!!.toInt()
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
