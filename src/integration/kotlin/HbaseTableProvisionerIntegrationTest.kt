@@ -9,6 +9,7 @@ import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.client.ConnectionFactory
+import org.assertj.core.api.Assertions.assertThat
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
@@ -43,7 +44,7 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         val tables = hbaseConnection().admin.listTableNames()
             .map(TableName::getNameAsString)
             .sorted()
-        logger.info("...hbase tables", "number" to "${tables.size}", "all_tables" to "$tables")
+        logger.info("...hbase tables", "tables_found" to "${tables.size}", "all_tables" to "$tables")
         return tables
     }
 
@@ -53,6 +54,8 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         val expectedTablesSorted = expectedTablesAndRegions.keys.sorted()
         logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear with given regions",
             "expected_tables_sorted" to "$expectedTablesSorted")
+
+        val foundTablesWithRegions = mutableMapOf<String, Int>()
 
         hbaseConnection().use { hbase ->
             withTimeout(10.minutes) {
@@ -68,23 +71,19 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
-                        hbaseConnection().getTable(TableName.valueOf(tableName)).use { table ->
-
-                            val configs = mutableMapOf<String,String>()
-                            table.configuration.iterator().forEachRemaining { config ->
-                                configs[config.key] = config.value
-                            }
-
-                            logger.info("Found table",
-                                "table_name" to "${table.name}",
-                                "table_configuration" to "${configs}",
-                                "table_descriptor" to table.tableDescriptor.toStringCustomizedValues(),
-                            )
-                        }
+                        val numberRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName)).size
+                        foundTablesWithRegions[tableName] = numberRegions
+                        logger.info("Found table",
+                            "table_name" to "$tableName",
+                            "number_regions" to "$numberRegions"
+                        )
                     }
                 }
+
             }
         }
+
+        assertThat(foundTablesWithRegions.toSortedMap()).isEqualTo(expectedTablesSorted)
     }
 
     companion object {
