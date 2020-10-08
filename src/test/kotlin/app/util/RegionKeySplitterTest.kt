@@ -7,44 +7,21 @@ import org.junit.jupiter.api.Test
 class RegionKeySplitterTest {
 
     @Test
-    fun confirmCalculateSplitsWillMakeNoSplitsForOneRegion() {
-
-        val result = calculateSplits(1)
-
-        val expected = listOf<Byte>()
-        assertThat(result).isEqualTo(expected)
-    }
-
-    @Test
-    fun confirmCalculateSplitsWillMakeOneLessNumberOfSplitsThanNumberOfRegions() {
-
-        val result = calculateSplits(5)
-        assertThat(result.size).isEqualTo(4)
-
-        val humanReadableResult = result.map { element ->
-            (element.joinToString("") { string -> String.format("\\x%02X", string) })
-        }
-
-        assertThat(humanReadableResult.toString()).isEqualTo("[\\x33\\x34, \\x66\\x67, \\x99\\x9A, \\xCC\\xCD]")
-    }
-
-    @Test
     fun splitsAreEquallySized() {
         val keyspaceSize = 256 * 256
-
         for (regionCount in 1 .. 10_000) {
             calculateSplits(regionCount).let { splits ->
+                assertEquals(regionCount - 1, splits.size)
                 val expectedSize = keyspaceSize / regionCount
                 val remainder = keyspaceSize % regionCount
                 gaps(splits).let { gaps ->
-                    gaps.indices.forEach {
-                        assertEquals(expectedSize + if (it < remainder) 1 else 0, gaps[it])
+                    gaps.indices.forEach { index ->
+                        assertEquals(expectedSize + if (index < remainder) 1 else 0, gaps[index])
                     }
                 }
             }
         }
     }
-
 
     private fun gaps(result: List<ByteArray>) =
             result.indices.map {
