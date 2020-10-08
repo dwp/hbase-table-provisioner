@@ -24,7 +24,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
         val collectionDetailsMap = mutableMapOf<String, Long>()
         logger.info("Prefix paths", "prefix_paths" to prefixPaths)
-        if (prefixPaths.isNullOrBlank() || prefixPaths.equals("NOT_SET")) {
+        if (prefixPaths.isBlank() || prefixPaths.startsWith("NOT_SET")) {
             logger.error("Prefix paths must be specified but was not", "prefix_paths" to prefixPaths)
             throw IllegalArgumentException("Prefix paths must be specified but was '$prefixPaths'")
         }
@@ -35,6 +35,10 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         }
 
         logger.info("Retrieved collections from S3", "number_of_collections" to collectionDetailsMap.size.toString())
+        if (collectionDetailsMap.isEmpty()){
+            logger.error("No collections found to process in S3", "number_of_collections" to collectionDetailsMap.size.toString())
+            throw IllegalArgumentException("No collections found to process in S3")
+        }
 
         return collectionDetailsMap
     }
@@ -72,7 +76,6 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     }
 
     private fun filterResultsForDataFilesOnly(s3Results: MutableList<S3ObjectSummary>): List<S3ObjectSummary> {
-
         logger.info("Filtering over collection results from S3",
             "result_size" to s3Results.size.toString(),
             "filtering_regex" to filenameFormatRegexPattern
@@ -100,7 +103,6 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
     }
 
     private fun deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects: List<S3ObjectSummary>): MutableMap<String, Long> {
-
         logger.info("Removing duplicates and calculating byte size",
             "collection_size" to filteredObjects.size.toString(),
             "name_regex_pattern" to nameRegexPattern
