@@ -1,4 +1,5 @@
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -13,18 +14,17 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 import kotlin.time.seconds
-import org.assertj.core.api.Assertions.assertThat
 
 @ExperimentalTime
 class HbaseTableProvisionerIntegrationTest : StringSpec() {
     init {
-        "Collections are provisioned as tables into Hbase" {
+        "Collections are provisioned as tables with expected region splits into HBase" {
             verifyHbase()
         }
     }
 
     private val regionReplication = 3
-    private val expectedTablesAndRegions = mapOf(
+    private val expectedTablesToRegions = mapOf(
         "accepted_data:address" to 1 * regionReplication,
         "accepted_data:childrenCircumstances" to 1 * regionReplication,
         "core:assessmentPeriod" to 5 * regionReplication,
@@ -52,11 +52,11 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
     private suspend fun verifyHbase() {
         var waitSoFarSecs = 0
         val longInterval = 5
-        val expectedTablesSorted = expectedTablesAndRegions.keys.sorted()
+        val expectedTablesSorted = expectedTablesToRegions.keys.sorted()
         logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear with given regions",
             "expected_tables_sorted" to "$expectedTablesSorted")
 
-        val foundTables = mutableMapOf<String, Int>()
+        val foundTablesToRegions = mutableMapOf<String, Int>()
 
         hbaseConnection().use { hbase ->
             withTimeout(10.minutes) {
@@ -73,18 +73,17 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
                         val regionsWithReplication = hbase.admin.getTableRegions(TableName.valueOf(tableName)).size
-
                         logger.info(
                             "Found table",
                             "table_name" to tableName,
                             "regions_with_replication" to "$regionsWithReplication",
                         )
-                        foundTables[tableName] = regionsWithReplication
+                        foundTablesToRegions[tableName] = regionsWithReplication
                     }
                 }
             }
         }
-        assertThat(foundTables.toSortedMap()).isEqualTo(expectedTablesAndRegions)
+        foundTablesToRegions.toSortedMap() shouldBe expectedTablesToRegions
     }
 
     companion object {

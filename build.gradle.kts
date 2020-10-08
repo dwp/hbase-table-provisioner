@@ -78,10 +78,9 @@ tasks.register<Test>("unit") {
     group = "verification"
     testClassesDirs = sourceSets["unit"].output.classesDirs
     classpath = sourceSets["unit"].runtimeClasspath
-    //copy all env vars from unix/your test container into the test
+
     setEnvironment(System.getenv())
-    //to copy individual ones do this
-    //environment("ABC", System.getEnv("ABC"))
+
     testLogging {
         outputs.upToDateWhen { false }
         showStandardStreams = true
