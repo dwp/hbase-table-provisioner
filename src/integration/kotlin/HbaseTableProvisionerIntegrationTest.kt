@@ -13,6 +13,7 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 import kotlin.time.seconds
+import org.assertj.core.api.Assertions.assertThat
 
 @ExperimentalTime
 class HbaseTableProvisionerIntegrationTest : StringSpec() {
@@ -22,12 +23,13 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         }
     }
 
+    private val regionReplication = 3
     private val expectedTablesAndRegions = mapOf(
-        "accepted_data:address" to 0,
-        "accepted_data:childrenCircumstances" to 0,
-        "core:assessmentPeriod" to 0,
-        "core:toDo" to 0,
-        "crypto:encryptedData" to 0)
+        "accepted_data:address" to 1 * regionReplication,
+        "accepted_data:childrenCircumstances" to 1 * regionReplication,
+        "core:assessmentPeriod" to 5 * regionReplication,
+        "core:toDo" to 1 * regionReplication,
+        "crypto:encryptedData" to 88 * regionReplication).toSortedMap()
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
@@ -49,10 +51,12 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
     private suspend fun verifyHbase() {
         var waitSoFarSecs = 0
-        val longInterval = 10
+        val longInterval = 5
         val expectedTablesSorted = expectedTablesAndRegions.keys.sorted()
         logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear with given regions",
             "expected_tables_sorted" to "$expectedTablesSorted")
+
+        val foundTables = mutableMapOf<String, Int>()
 
         hbaseConnection().use { hbase ->
             withTimeout(10.minutes) {
@@ -68,23 +72,19 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
-                        hbase.getTable(TableName.valueOf(tableName)).use { table ->
+                        val regionsWithReplication = hbase.admin.getTableRegions(TableName.valueOf(tableName)).size
 
-                            val configs = mutableMapOf<String,String>()
-                            table.configuration.iterator().forEachRemaining { config ->
-                                configs[config.key] = config.value
-                            }
-
-                            logger.info("Found table",
-                                "table_name" to "${table.name}",
-                                "table_configuration" to "${configs}",
-                                "table_descriptor" to table.tableDescriptor.toStringCustomizedValues(),
-                            )
-                        }
+                        logger.info(
+                            "Found table",
+                            "table_name" to tableName,
+                            "regions_with_replication" to "$regionsWithReplication",
+                        )
+                        foundTables[tableName] = regionsWithReplication
                     }
                 }
             }
         }
+        assertThat(foundTables.toSortedMap()).isEqualTo(expectedTablesAndRegions)
     }
 
     companion object {
