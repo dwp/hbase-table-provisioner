@@ -30,24 +30,24 @@ class RegionKeySplitterTest {
 
     @Test
     fun splitsAreEquallySized() {
-
         for (regionCount in 1 .. 10_000) {
             val result = calculateSplits(regionCount)
+            val expectedSize = (256 * 256) / regionCount
+            val remainder = (256 * 256) % regionCount
+            gaps(result).run {
+                indices.forEach {
+                    assertEquals(expectedSize + if (it < remainder) 1 else 0, this[it])
+                }
+            }
+        }
+    }
 
-            val gaps = result.indices.map {
+    private fun gaps(result: List<ByteArray>) =
+            result.indices.map {
                 val position1 = if (it == 0) 0 else position(result[it - 1])
                 val position2 = position(result[it])
                 position2 - position1
             }
-
-            val expectedSize = (256 * 256) / regionCount
-            val remainder = (256 * 256) % regionCount
-
-            gaps.indices.forEach {
-                assertEquals(expectedSize + if (it < remainder) 1 else 0, gaps[it])
-            }
-        }
-    }
 
     private fun position(digits: ByteArray): Int = toUnsigned(digits[0]) * 256 + toUnsigned(digits[1])
     private fun toUnsigned(byte: Byte): Int = if (byte < 0) (byte + 256) else byte.toInt()
