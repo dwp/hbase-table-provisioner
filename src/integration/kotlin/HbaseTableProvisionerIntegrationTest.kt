@@ -24,11 +24,11 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
     }
 
     private val expectedTablesAndRegions = mapOf(
-        "accepted_data:address" to 0,
-        "accepted_data:childrenCircumstances" to 0,
-        "core:assessmentPeriod" to 0,
-        "core:toDo" to 0,
-        "crypto:encryptedData" to 0)
+        "accepted_data:address" to 3, //1
+        "accepted_data:childrenCircumstances" to 3, //1
+        "core:assessmentPeriod" to 15, //5
+        "core:toDo" to 15, //5
+        "crypto:encryptedData" to 264) //88
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
@@ -70,7 +70,12 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
             testTables().forEach { tableName ->
                 launch(Dispatchers.IO) {
-                    val numberRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName)).size
+                    val numberRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName))
+                        .filter {
+                            //only region replica 0, which might have this set to null
+                            it.regionId == 0L
+                        }.size
+
                     foundTablesWithRegions[tableName] = numberRegions
                     logger.info("Found table",
                         "table_name" to tableName,

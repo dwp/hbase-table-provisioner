@@ -53,7 +53,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                 it.forEach { (collectionName, size) ->
                     launch(Dispatchers.IO) {
                         logger.info("Provisioning table",
-                            "current_chunk" to "${currentChunk++}",
+                            "current_chunk" to "${++currentChunk}",
                             "max_chunks" to "$maxChunks")
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         val splits = calculateSplits(collectionRegionSize)
