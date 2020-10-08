@@ -24,12 +24,13 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
     }
 
     private val numberRegionReplicas = 3
+    // multiply the number expected to be created by HTP by the region replicas
     private val expectedTablesAndRegions = mapOf(
-        "accepted_data:address" to 3, //1
-        "accepted_data:childrenCircumstances" to 3, //1
-        "core:assessmentPeriod" to 15, //5
-        "core:toDo" to 15, //5
-        "crypto:encryptedData" to 264) //88
+        "accepted_data:address" to 1 * numberRegionReplicas,
+        "accepted_data:childrenCircumstances" to 1 * numberRegionReplicas,
+        "core:assessmentPeriod" to 5 * numberRegionReplicas,
+        "core:toDo" to 5 * numberRegionReplicas,
+        "crypto:encryptedData" to 88 * numberRegionReplicas)
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
@@ -72,36 +73,12 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
-                        val tableRegions = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName))
-                        val numberRegionsWithReplicas = tableRegions.size
+                        val tableRegionsSize = hbaseConnection().admin.getTableRegions(TableName.valueOf(tableName)).size
+                        foundTablesWithRegions[tableName] = tableRegionsSize
                         logger.info("Found table",
                             "table_name" to tableName,
-                            "number_regions_with_replicas" to "$numberRegionsWithReplicas"
+                            "number_regions_with_replicas" to "$tableRegionsSize"
                         )
-
-                        tableRegions.forEach { regionInfo ->
-                            logger.info(
-                                "Found table region",
-                                "table_name" to tableName,
-                                "region_id" to "$regionInfo.regionId",
-                            )
-                        }
-
-                        //numberRegionReplicas
-
-//                    val numberRegions = tableRegions
-//                        .filter {
-//                            //only region replica 0, which might have this set to null
-//                            it.regionId == 0L
-//                        }.size
-//
-//                    foundTablesWithRegions[tableName] = numberRegions
-//                    logger.info("Found table",
-//                        "table_name" to tableName,
-//                        "number_regions" to "$numberRegions",
-//                        "number_regions_with_replicas" to "$numberRegionsWithReplicas",
-//                        "found_replicas" to "${numberRegionsWithReplicas/numberRegions}"
-//                    )
                     }
                 }
             }
