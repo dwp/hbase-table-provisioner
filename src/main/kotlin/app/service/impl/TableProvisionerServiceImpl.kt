@@ -44,17 +44,17 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             "total_bytes" to "$totalBytes",
             "region_unit" to regionUnit.toString())
 
-        val max_chunks = 10
-        var current_chunk = 0
-        val split = collectionDetailsMap.entries.chunked(max_chunks)
+        val maxChunks = 10
+        var currentChunk = 0
+        val split = collectionDetailsMap.entries.chunked(maxChunks)
 
         split.forEach {
             runBlocking {
                 it.forEach { (collectionName, size) ->
                     launch(Dispatchers.IO) {
                         logger.info("Provisioning table",
-                            "current_chunk" to "${current_chunk++}",
-                            "max_chunks" to "$max_chunks")
+                            "current_chunk" to "${currentChunk++}",
+                            "max_chunks" to "$maxChunks")
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         val splits = calculateSplits(collectionRegionSize)
                         hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
@@ -65,7 +65,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
 
         logger.info("Provisioned all tables for collections",
             "number_of_collections" to "${collectionDetailsMap.size}",
-            "max_chunks" to "$max_chunks"
+            "max_chunks" to "$maxChunks"
         )
     }
 
