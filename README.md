@@ -88,3 +88,23 @@ See `hbase-table-provisioner` in [docker-compose.yaml](docker-compose.yaml)
 | S3_INITIAL_BACKOFF_MILLIS                        | 1000                        | - |
 | S3_BACKOFF_MULTIPLIER                            | 2                           | - |
 | SPRING_PROFILES_ACTIVE                           | "LOCAL_S3" or "AWS_S3"      | - |
+
+## AWS Insights Queries
+
+Here are some pre-cooked insights for the results of the HTP runs
+
+### Tables that pre-existed
+```
+fields @timestamp, message, table_name, @logStream
+| filter @logStream like /hbase_table_provisioner/ and message = "Table already exists in hbase for collection" 
+| display @timestamp, table_name
+| sort table_name asc
+```
+
+### Tables created and Regions
+```
+fields @timestamp, message, table_name, region_capacity, @logStream
+| filter @logStream like /hbase_table_provisioner/ and message = "Created Hbase table" 
+| display @timestamp, table_name, region_capacity
+| sort table_name asc
+```
