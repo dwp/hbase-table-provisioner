@@ -30,10 +30,12 @@ class RegionKeySplitterTest {
 
     @Test
     fun splitsAreEquallySized() {
+        val keyspaceSize = 256 * 256
+
         for (regionCount in 1 .. 10_000) {
             calculateSplits(regionCount).let { splits ->
-                val expectedSize = (256 * 256) / regionCount
-                val remainder = (256 * 256) % regionCount
+                val expectedSize = keyspaceSize / regionCount
+                val remainder = keyspaceSize % regionCount
                 gaps(splits).let { gaps ->
                     gaps.indices.forEach {
                         assertEquals(expectedSize + if (it < remainder) 1 else 0, gaps[it])
@@ -42,6 +44,7 @@ class RegionKeySplitterTest {
             }
         }
     }
+
 
     private fun gaps(result: List<ByteArray>) =
             result.indices.map {
