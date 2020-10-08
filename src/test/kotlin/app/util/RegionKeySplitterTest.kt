@@ -1,30 +1,40 @@
 package app.util
 
-import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class RegionKeySplitterTest {
 
     @Test
-    fun confirmCalculateSplitsWillMakeNoSplitsForOneRegion() {
-
-        val result = calculateSplits(1)
-
-        val expected = listOf<Byte>()
-        assertThat(result).isEqualTo(expected)
-    }
-
-    @Test
-    fun confirmCalculateSplitsWillMakeOneLessNumberOfSplitsThanNumberOfRegions() {
-
-        val result = calculateSplits(5)
-        assertThat(result.size).isEqualTo(4)
-
-        val humanReadableResult = result.map { element ->
-            (element.joinToString("") { string -> String.format("\\x%02X", string) })
+    fun splitsAreEquallySized() {
+        for (regionCount in 1 .. 10_000) {
+            calculateSplits(regionCount).let { splits ->
+                assertEquals(regionCount - 1, splits.size)
+                gaps(splits).let { gaps ->
+                    gaps.indices.forEach { index ->
+                        assertEquals(expectedSize(regionCount, index), gaps[index])
+                    }
+                }
+            }
         }
-
-        assertThat(humanReadableResult.toString()).isEqualTo("[\\x33\\x34, \\x66\\x67, \\x99\\x9A, \\xCC\\xCD]")
     }
 
+    private fun expectedSize(regionCount: Int, index: Int) =
+            minimumSize(regionCount) + if (index < remainder(regionCount)) 1 else 0
+
+    private fun gaps(splits: List<ByteArray>) =
+            splits.indices.map {
+                val position1 = if (it == 0) 0 else position(splits[it - 1])
+                val position2 = position(splits[it])
+                position2 - position1
+            }
+
+    private fun remainder(regionCount: Int): Int = keyspaceSize % regionCount
+    private fun minimumSize(regionCount: Int) = keyspaceSize / regionCount
+    private fun position(digits: ByteArray): Int = toUnsigned(digits[0]) * 256 + toUnsigned(digits[1])
+    private fun toUnsigned(byte: Byte): Int = if (byte < 0) (byte + 256) else byte.toInt()
+
+    companion object {
+        private const val keyspaceSize = 256 * 256
+    }
 }
