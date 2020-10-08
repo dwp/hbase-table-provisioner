@@ -22,11 +22,10 @@ class RegionKeySplitterTest {
     private fun expectedSize(regionCount: Int, index: Int) =
         minimumSize(regionCount) + if (index < remainder(regionCount)) 1 else 0
 
-
-    private fun gaps(result: List<ByteArray>) =
-            result.indices.map {
-                val position1 = if (it == 0) 0 else position(result[it - 1])
-                val position2 = position(result[it])
+    private fun gaps(splits: List<ByteArray>) =
+            splits.indices.map {
+                val position1 = if (it == 0) 0 else position(splits[it - 1])
+                val position2 = position(splits[it])
                 position2 - position1
             }
 
@@ -36,6 +35,6 @@ class RegionKeySplitterTest {
     private fun toUnsigned(byte: Byte): Int = if (byte < 0) (byte + 256) else byte.toInt()
 
     companion object {
-        private const val keyspaceSize = 256 * 25
+        private const val keyspaceSize = 256 * 256
     }
 }
