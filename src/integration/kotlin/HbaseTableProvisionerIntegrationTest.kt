@@ -1,4 +1,5 @@
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -17,17 +18,18 @@ import kotlin.time.seconds
 @ExperimentalTime
 class HbaseTableProvisionerIntegrationTest : StringSpec() {
     init {
-        "Collections are provisioned as tables into Hbase" {
+        "Collections are provisioned as tables with expected region splits into HBase" {
             verifyHbase()
         }
     }
 
-    private val expectedTablesAndRegions = mapOf(
-        "accepted_data:address" to 0,
-        "accepted_data:childrenCircumstances" to 0,
-        "core:assessmentPeriod" to 0,
-        "core:toDo" to 0,
-        "crypto:encryptedData" to 0)
+    private val regionReplication = 3
+    private val expectedTablesToRegions = mapOf(
+        "accepted_data:address" to 1 * regionReplication,
+        "accepted_data:childrenCircumstances" to 1 * regionReplication,
+        "core:assessmentPeriod" to 5 * regionReplication,
+        "core:toDo" to 5 * regionReplication,
+        "crypto:encryptedData" to 88 * regionReplication).toSortedMap()
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
@@ -49,10 +51,12 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
     private suspend fun verifyHbase() {
         var waitSoFarSecs = 0
-        val longInterval = 10
-        val expectedTablesSorted = expectedTablesAndRegions.keys.sorted()
+        val longInterval = 5
+        val expectedTablesSorted = expectedTablesToRegions.keys.sorted()
         logger.info("Waiting for ${expectedTablesSorted.size} hbase tables to appear with given regions",
             "expected_tables_sorted" to "$expectedTablesSorted")
+
+        val foundTablesToRegions = mutableMapOf<String, Int>()
 
         hbaseConnection().use { hbase ->
             withTimeout(10.minutes) {
@@ -68,23 +72,18 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
 
                 testTables().forEach { tableName ->
                     launch(Dispatchers.IO) {
-                        hbase.getTable(TableName.valueOf(tableName)).use { table ->
-
-                            val configs = mutableMapOf<String,String>()
-                            table.configuration.iterator().forEachRemaining { config ->
-                                configs[config.key] = config.value
-                            }
-
-                            logger.info("Found table",
-                                "table_name" to "${table.name}",
-                                "table_configuration" to "${configs}",
-                                "table_descriptor" to table.tableDescriptor.toStringCustomizedValues(),
-                            )
-                        }
+                        val regionsWithReplication = hbase.admin.getTableRegions(TableName.valueOf(tableName)).size
+                        logger.info(
+                            "Found table",
+                            "table_name" to tableName,
+                            "regions_with_replication" to "$regionsWithReplication",
+                        )
+                        foundTablesToRegions[tableName] = regionsWithReplication
                     }
                 }
             }
         }
+        foundTablesToRegions.toSortedMap() shouldBe expectedTablesToRegions
     }
 
     companion object {
