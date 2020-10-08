@@ -81,6 +81,9 @@ destroy: down ## Bring down the HTP Docker container and services then delete al
 	docker network prune -f
 	docker volume prune -f
 
+build-integration-tests: build-base ## Rebuild just the integration test container
+	docker-compose build htp-integration-test
+
 build: build-base build-htp ## build main images
 	docker-compose build
 
@@ -95,3 +98,5 @@ build-base: ## build the base images which certain images extend.
 
 build-htp: local-all ## Build local jar file and HTP image
 	docker-compose -f docker-compose.yaml build hbase-table-provisioner
+
+re-run-integration-tests-only: build-integration-tests integration-test ## Rebuild and re-run just the integration tests
