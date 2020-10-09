@@ -35,6 +35,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             return
         }
         logger.info("Found collections to be created in Hbase", "collection_count" to "${collectionDetailsMap.size}")
+        logger.info("List of collections to be created in Hbase", "collection_list" to "${collectionDetailsMap.keys}")
 
         val totalBytes = getTotalBytesForAllCollections(collectionDetailsMap)
         val totalRegionsForAllRegionServers = regionTargetSize * regionServerCount
