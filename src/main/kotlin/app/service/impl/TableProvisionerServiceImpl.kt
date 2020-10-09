@@ -25,7 +25,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
         logger.info("Running provisioner for Hbase tables",
                 "region_target_size" to "$regionTargetSize",
                 "region_server_count" to "$regionServerCount",
-                "chunk_size" to "$chunkSize")
+                "chunk_size" to "$chunkSize",
+                "region_replication" to "$regionReplicationCount")
 
         val collectionDetailsMap: MutableMap<String, Long> = s3ReaderService.getCollectionSummaries()
 
@@ -47,7 +48,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                 "total_regions" to "$totalRegionsForAllTables",
                 "total_bytes" to "$totalBytes",
                 "region_unit" to regionUnit.toString(),
-                "chunk_size" to "$chunkSize"
+                "chunk_size" to "$chunkSize",
+                "region_replication" to "$regionReplicationCount"
         )
 
         var currentChunk = 0
@@ -57,7 +59,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                     launch(Dispatchers.IO) {
                         logger.info("Provisioning table",
                                 "current_chunk" to "${currentChunk++}",
-                                "chunk_size" to "$chunkSize")
+                                "chunk_size" to "$chunkSize",
+                                "region_replication" to "$regionReplicationCount")
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         val splits = calculateSplits(collectionRegionSize)
                         hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
@@ -68,7 +71,13 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
 
         logger.info("Provisioned all tables for collections",
                 "number_of_collections" to "${collectionDetailsMap.size}",
-                "chunk_size" to "$chunkSize"
+                "region_target_size" to "$regionTargetSize",
+                "region_server_count" to "$regionServerCount",
+                "total_regions" to "$totalRegionsForAllTables",
+                "total_bytes" to "$totalBytes",
+                "region_unit" to regionUnit.toString(),
+                "chunk_size" to "$chunkSize",
+                "region_replication" to "$regionReplicationCount"
         )
     }
 
