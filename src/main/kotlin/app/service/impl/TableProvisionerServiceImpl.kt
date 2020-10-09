@@ -54,14 +54,16 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
         )
 
         var currentChunk = 0
-        collectionDetailsMap.entries.chunked(chunkSize).forEach {
+        collectionDetailsMap.entries
+            .sortedBy { (_, size) -> -size}
+            .chunked(chunkSize).forEach {
             runBlocking {
                 it.forEach { (collectionName, size) ->
                     launch(Dispatchers.IO) {
                         logger.info("Provisioning table",
                                 "current_chunk" to "${currentChunk++}",
                                 "chunk_size" to "$chunkSize",
-                                "region_replication" to "$regionReplicationCount")
+                                "region_replication" to "$regionReplicationCount", "size" to "$size")
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         logger.info("Size of collection in percentage",
                                 "collection_name" to "${collectionName}",
