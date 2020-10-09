@@ -1,6 +1,7 @@
 package app.service.impl
 
 import com.nhaarman.mockitokotlin2.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class TableProvisionerServiceImplTest {
@@ -27,7 +28,17 @@ class TableProvisionerServiceImplTest {
         service.provisionHbaseTable()
 
         verify(s3ReaderServiceMock, times(1)).getCollectionSummaries()
-        verify(hbaseTableCreatorMock, times(2)).createHbaseTableFromProps(any(), any(), any())
+        val collectionCaptor = argumentCaptor<String>()
+        val capacityCaptor = argumentCaptor<Int>()
+        val splitsCaptor = argumentCaptor<List<ByteArray>>()
+        verify(hbaseTableCreatorMock, times(2)).createHbaseTableFromProps(collectionCaptor.capture(),
+                                                                                       capacityCaptor.capture(),
+                                                                                       splitsCaptor.capture())
+
+        collectionCaptor.allValues.forEachIndexed { index, s ->
+            val expected = if (index == 0) "collection_2" else "collection_1"
+            assertEquals(expected, s)
+        }
     }
 
     @Test
@@ -54,5 +65,5 @@ class TableProvisionerServiceImplTest {
     }
 
     private fun mockCollectionSummaries(): MutableMap<String, Long> =
-            mutableMapOf("collection_1" to 100, "collection_2" to 100)
+            mutableMapOf("collection_1" to 100, "collection_2" to 300)
 }
