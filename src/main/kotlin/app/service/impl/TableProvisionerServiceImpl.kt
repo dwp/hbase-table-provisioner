@@ -67,7 +67,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         logger.info("Size of collection in percentage",
                                 "collection_name" to "${collectionName}",
-                                "collection_size_percentage" to "${(size / totalBytes) * 100}"
+                                "collection_size_percentage" to "${(size % totalBytes) * 100}"
                         )
                         val splits = calculateSplits(collectionRegionSize)
                         hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)

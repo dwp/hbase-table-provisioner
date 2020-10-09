@@ -27,6 +27,18 @@ If you just want to run the app you can execute this
 make build up
 ```
 
+## Instructions for running in Production
+To run in Production, one must make sure that the EMRFS Metadata DynamoDb table has provisioned throughput set very high *temporarily*. Values:
+18,000 Read
+15,000 Write
+
+It is required to increase the throughput temporarily as hbase-table-provisioner causes Hbase to extensively write to the metadata while it is provisioning tables.
+Ensure you reduce the throughput capacity back to normal levels once hbase-table-provisioner has completed.
+
+In addition to raising throughput, make sure nothing is writing / reading Hbase. Ensure the Hbase balancer and cleaner chores are turned on using ingest-hbase-emr-utilities pipeline.
+
+Also, don't operate within Hbase off-peak period!
+
 ### Integration tests
 
 To rebuild everything and run the unit and integration tests, run this
