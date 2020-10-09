@@ -7,6 +7,7 @@ import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.io.compress.Compression
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
+import org.apache.hadoop.hbase.TableExistsException
 
 @Service
 class HbaseTableCreatorServiceImpl(
@@ -18,7 +19,10 @@ class HbaseTableCreatorServiceImpl(
         ensureNamespaceExists(collectionName)
 
         if (checkIfTableExists(collectionName)) {
-            logger.warn("Table already exists in hbase for collection", "table_name" to collectionName)
+            logger.warn("Table already exists in hbase for collection",
+                "table_name" to collectionName,
+                "region_capacity" to regionCapacity.toString()
+            )
         } else {
             createHbaseTable(collectionName, regionCapacity, splits)
         }
@@ -42,26 +46,40 @@ class HbaseTableCreatorServiceImpl(
     }
 
     private fun createHbaseTable(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
-
-        logger.info("Creating Hbase table",
+        try {
+            logger.info(
+                "Creating Hbase table",
                 "table_name" to collectionName,
-                "region_capacity" to regionCapacity.toString())
+                "region_capacity" to regionCapacity.toString()
+            )
 
-        val hbaseTableName = hbaseTableName(collectionName)
+            val hbaseTableName = hbaseTableName(collectionName)
 
-        val hbaseTable = HTableDescriptor(hbaseTableName).apply {
-            addFamily(HColumnDescriptor(columnFamily)
+            val hbaseTable = HTableDescriptor(hbaseTableName).apply {
+                addFamily(HColumnDescriptor(columnFamily)
                     .apply {
                         maxVersions = Int.MAX_VALUE
                         minVersions = 1
                         compressionType = Compression.Algorithm.GZ
                         compactionCompressionType = Compression.Algorithm.GZ
                     })
-            regionReplication = regionReplicationCount
-        }
+                regionReplication = regionReplicationCount
+            }
 
-        hbaseConnection.admin.createTable(hbaseTable, splits.toTypedArray())
-        logger.info("Created Hbase table", "table_name" to collectionName, "region_capacity" to regionCapacity.toString())
+            hbaseConnection.admin.createTable(hbaseTable, splits.toTypedArray())
+            logger.info(
+                "Created Hbase table",
+                "table_name" to collectionName,
+                "region_capacity" to regionCapacity.toString()
+            )
+
+        } catch (e: TableExistsException) {
+            logger.warn(
+                "Exception caught when attempting to create Hbase table",
+                "table_name" to collectionName,
+                "region_capacity" to regionCapacity.toString()
+            )
+        }
     }
 
     private fun checkIfTableExists(collectionName: String): Boolean {
