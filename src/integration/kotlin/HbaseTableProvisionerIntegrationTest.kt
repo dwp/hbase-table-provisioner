@@ -23,13 +23,12 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         }
     }
 
-    private val regionReplication = 3
     private val expectedTablesToRegions = mapOf(
-        "accepted_data:address" to 1 * regionReplication,
-        "accepted_data:childrenCircumstances" to 1 * regionReplication,
-        "core:assessmentPeriod" to 5 * regionReplication,
-        "core:toDo" to 5 * regionReplication,
-        "crypto:encryptedData" to 88 * regionReplication).toSortedMap()
+        "accepted_data:address" to 1,
+        "accepted_data:childrenCircumstances" to 1,
+        "core:assessmentPeriod" to 5,
+        "core:toDo" to 5,
+        "crypto:encryptedData" to 88).toSortedMap()
 
     private fun hbaseConnection(): Connection {
         val host = System.getenv("HBASE_ZOOKEEPER_QUORUM") ?: "localhost"
