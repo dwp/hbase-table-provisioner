@@ -67,7 +67,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
             val filteredObjects = filterResultsForDataFilesOnly(objectSummaries)
 
-            return deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects)
+            return deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects, sourceDatabasePath)
         }
         catch (e: Exception) {
             logger.error("Error getting collection from S3", e)
@@ -102,7 +102,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         return matchedConditionObjects
     }
 
-    private fun deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects: List<S3ObjectSummary>): MutableMap<String, Long> {
+    private fun deduplicateAndCarryOverCollectionPropertiesAsOne(filteredObjects: List<S3ObjectSummary>, sourceDatabasePath: String): MutableMap<String, Long> {
         logger.info("Removing duplicates and calculating byte size",
             "collection_size" to filteredObjects.size.toString(),
             "name_regex_pattern" to nameRegexPattern
@@ -136,6 +136,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         // single collection names log for HDl and HDI to use - do not remove this plz thx
         logger.info(
             "Removed duplicates and calculated byte size",
+            "prefix_path" to "${sourceDatabasePath}",
             "deduped_collection_size" to topicByteSizeMap.size.toString(),
             "s3_topic_names" to topicS3ToCoalescedNames.keys.sorted().toString(),
             "coalesced_topic_names" to topicS3ToCoalescedNames.values.sorted().toString(),
