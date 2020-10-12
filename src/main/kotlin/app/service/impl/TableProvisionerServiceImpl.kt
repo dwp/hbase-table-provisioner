@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 import kotlin.math.ceil
+import kotlin.time.ExperimentalTime
 
 @Service
 class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceImpl,
@@ -20,6 +21,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                                   private val chunkSize: Int,
                                   private val regionReplicationCount: Int) : TableProvisionerService {
 
+    @ExperimentalTime
     override fun provisionHbaseTable() {
 
         logger.info("Running provisioner for Hbase tables",

@@ -2,12 +2,15 @@ package app.service.impl
 
 import app.configuration.CollectionsS3Configuration
 import app.service.HbaseTableCreatorService
+import kotlinx.coroutines.delay
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.io.compress.Compression
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
 import org.apache.hadoop.hbase.TableExistsException
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 @Service
 class HbaseTableCreatorServiceImpl(
@@ -15,7 +18,8 @@ class HbaseTableCreatorServiceImpl(
         private val columnFamily: String,
         private val regionReplicationCount: Int) : HbaseTableCreatorService {
 
-    override fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+    @ExperimentalTime
+    override suspend fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
         ensureNamespaceExists(collectionName)
 
         if (checkIfTableExists(collectionName)) {
@@ -45,7 +49,8 @@ class HbaseTableCreatorServiceImpl(
         }
     }
 
-    private fun createHbaseTable(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+    @ExperimentalTime
+    private suspend fun createHbaseTable(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
         try {
             logger.info(
                 "Creating Hbase table",
@@ -66,12 +71,16 @@ class HbaseTableCreatorServiceImpl(
                 regionReplication = regionReplicationCount
             }
 
-            hbaseConnection.admin.createTable(hbaseTable, splits.toTypedArray())
-            logger.info(
-                "Created Hbase table",
-                "table_name" to collectionName,
-                "region_capacity" to regionCapacity.toString()
-            )
+
+            hbaseConnection.admin.createTableAsync(hbaseTable, splits.toTypedArray())
+
+            while (!hbaseConnection.admin.isTableAvailable(hbaseTableName)) {
+                logger.info("Waiting for table to be available", "table" to "$hbaseTableName")
+                delay(10.seconds)
+            }
+
+            logger.info("Created Hbase table","table_name" to collectionName,
+                "region_capacity" to regionCapacity.toString())
 
         } catch (e: TableExistsException) {
             logger.warn(

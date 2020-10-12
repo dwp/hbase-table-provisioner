@@ -1,9 +1,7 @@
 package app.service.impl
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.*
+import kotlinx.coroutines.runBlocking
 import org.apache.hadoop.hbase.HColumnDescriptor
 import org.apache.hadoop.hbase.HTableDescriptor
 import org.apache.hadoop.hbase.NamespaceDescriptor
@@ -11,12 +9,15 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.Admin
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.io.compress.Compression
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import kotlin.time.ExperimentalTime
 
 class HbaseTableCreatorServiceImplTest {
 
+    @ExperimentalTime
     @Test
-    fun shouldCreateHbaseTableForCollectionsWhenRequestingGivenTheyDoNotExist() {
+    fun shouldCreateHbaseTableForCollectionsWhenRequestingGivenTheyDoNotExist() = runBlocking {
 
         val tableName = "collection:name"
         val columnFamily = "cf"
@@ -41,6 +42,7 @@ class HbaseTableCreatorServiceImplTest {
         val adm  = mock<Admin> {
             on { listTableNames() } doReturn arrayOf()
             on { listNamespaceDescriptors() } doReturn arrayOf(NamespaceDescriptor.DEFAULT_NAMESPACE)
+            on { isTableAvailable(expectedHbaseTableName) } doReturnConsecutively listOf(false, true)
         }
 
         val connection = mock<Connection> {
@@ -48,12 +50,15 @@ class HbaseTableCreatorServiceImplTest {
         }
 
         val service = HbaseTableCreatorServiceImpl(connection, columnFamily, regionReplicationCount)
-
         service.createHbaseTableFromProps(tableName, regionCapacity, splits)
 
         verify(adm, times(1)).listTableNames()
         verify(adm, times(1)).listNamespaceDescriptors()
-
-        verify(adm, times(1)).createTable(expectedHbaseTable, splits.toTypedArray())
+        val namespaceCaptor = argumentCaptor<NamespaceDescriptor>()
+        verify(adm, times(1)).createNamespace(namespaceCaptor.capture())
+        assertEquals("collection", namespaceCaptor.firstValue.name)
+        verify(adm, times(1)).createTableAsync(expectedHbaseTable, splits.toTypedArray())
+        verify(adm, times(2)).isTableAvailable(expectedHbaseTableName)
+        verifyNoMoreInteractions(adm)
     }
 }
