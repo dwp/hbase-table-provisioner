@@ -8,10 +8,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.dwp.dataworks.logging.DataworksLogger
+import kotlin.time.ExperimentalTime
+import kotlin.time.hours
 
 @Configuration
 @ConfigurationProperties(prefix = "hbase")
-data class HBaseConfiguration(
+data class HBaseConfiguration @ExperimentalTime constructor(
         var zookeeperParent: String? = "NOT_SET",
         var zookeeperQuorum: String? = "NOT_SET",
         var zookeeperPort: String? = "NOT_SET",
@@ -25,7 +27,8 @@ data class HBaseConfiguration(
         var regionReplicationCount: String? = "NOT_SET",
         var regionTargetSize: String? = "NOT_SET",
         var regionServerCount: String? = "NOT_SET",
-        var chunkSize: String? = "NOT_SET") {
+        var chunkSize: String? = "NOT_SET",
+        var creationTimeoutSeconds: Int = 1.hours.inSeconds.toInt()) {
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
 
@@ -92,11 +95,15 @@ data class HBaseConfiguration(
     @Bean
     fun regionReplicationCount() = regionReplicationCount!!.toInt()
 
+
     @Bean
     fun regionTargetSize() = regionTargetSize!!.toInt()
 
     @Bean
     fun regionServerCount() = regionServerCount!!.toInt()
+
+    @Bean
+    fun creationTimeoutSeconds() = creationTimeoutSeconds
 
     @Bean
     fun chunkSize() = chunkSize!!.toInt()
