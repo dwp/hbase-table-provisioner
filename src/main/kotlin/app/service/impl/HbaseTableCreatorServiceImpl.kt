@@ -72,7 +72,12 @@ class HbaseTableCreatorServiceImpl(
             }
 
 
-            hbaseConnection.admin.createTableAsync(hbaseTable, splits.toTypedArray())
+            if (splits.isNotEmpty()) {
+                hbaseConnection.admin.createTableAsync(hbaseTable, splits.toTypedArray())
+            }
+            else {
+                hbaseConnection.admin.createTable(hbaseTable)
+            }
 
             while (!hbaseConnection.admin.isTableAvailable(hbaseTableName)) {
                 logger.info("Waiting for table to be available", "table" to "$hbaseTableName")

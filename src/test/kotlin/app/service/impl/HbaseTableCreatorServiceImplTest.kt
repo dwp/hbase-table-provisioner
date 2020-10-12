@@ -22,7 +22,7 @@ class HbaseTableCreatorServiceImplTest {
         val tableName = "collection:name"
         val columnFamily = "cf"
         val regionReplicationCount = 1
-        val splits = listOf<ByteArray>()
+        val splits = listOf<ByteArray>(ByteArray(2))
 
         val regionCapacity = 1
 
