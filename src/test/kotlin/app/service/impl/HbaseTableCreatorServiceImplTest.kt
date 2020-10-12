@@ -49,7 +49,7 @@ class HbaseTableCreatorServiceImplTest {
             on { admin } doReturn adm
         }
 
-        val service = HbaseTableCreatorServiceImpl(connection, columnFamily, regionReplicationCount, 1)
+        val service = HbaseTableCreatorServiceImpl(connection, columnFamily, regionReplicationCount, 60)
         service.createHbaseTableFromProps(tableName, regionCapacity, splits)
 
         verify(adm, times(1)).listTableNames()
