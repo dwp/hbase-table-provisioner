@@ -77,7 +77,7 @@ class HbaseTableCreatorServiceImpl(
                 hbaseConnection.admin.createTableAsync(hbaseTable, splits.toTypedArray())
             }
             else {
-                logger.info("No splits, creating table synchronoulsy", "table" to "$hbaseTable", "splits" to "${splits.size}")
+                logger.info("No splits, creating table synchronously", "table" to "$hbaseTable", "splits" to "${splits.size}")
                 hbaseConnection.admin.createTable(hbaseTable)
             }
 
