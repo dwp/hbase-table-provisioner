@@ -3,11 +3,13 @@ package app.service.impl
 import com.nhaarman.mockitokotlin2.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import kotlin.time.ExperimentalTime
 
 class TableProvisionerServiceImplTest {
 
+    @ExperimentalTime
     @Test
-    fun shouldProvisionHbaseTablesWhenRequestedGivenCollectionsExist() {
+    suspend fun shouldProvisionHbaseTablesWhenRequestedGivenCollectionsExist() {
 
         val collectionSummaries = mockCollectionSummaries()
 
@@ -41,6 +43,7 @@ class TableProvisionerServiceImplTest {
         }
     }
 
+    @ExperimentalTime
     @Test
     fun shouldNotProvisionedHbaseTablesWhenRequestedGivenNoCollectionsExist() {
 
