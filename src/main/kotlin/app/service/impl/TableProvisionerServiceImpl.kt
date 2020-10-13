@@ -58,25 +58,30 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
         var currentChunk = 0
         collectionDetailsMap.entries
             .sortedBy { (_, size) -> -size}
-            .chunked(chunkSize).forEach {
-            runBlocking {
-                it.forEach { (collectionName, size) ->
-                    launch {
+            .chunked(chunkSize)
+            .forEachIndexed { index, chunk ->
+                runBlocking {
+                    chunk.forEach { (collectionName, size) ->
                         logger.info("Provisioning table",
-                                "current_chunk" to "${currentChunk++}",
-                                "chunk_size" to "$chunkSize",
-                                "region_replication" to "$regionReplicationCount", "size" to "$size")
+                            "current_chunk" to "${currentChunk++}",
+                            "chunk_size" to "$chunkSize",
+                            "region_replication" to "$regionReplicationCount", "size" to "$size",
+                            "collection_name" to "$collectionName",
+                            "collection_size_percentage" to "${(size / totalBytes) * 100}")
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
-                        logger.info("Size of collection in percentage",
-                                "collection_name" to "${collectionName}",
-                                "collection_size_percentage" to "${(size % totalBytes) * 100}"
-                        )
                         val splits = calculateSplits(collectionRegionSize)
-                        hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
+                        if (splits.size > 500) {
+                            hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
+                        }
+                        else {
+                            launch {
+                                hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
+                            }
+                        }
                     }
                 }
             }
-        }
+
 
         logger.info("Provisioned all tables for collections",
                 "number_of_collections" to "${collectionDetailsMap.size}",
