@@ -56,6 +56,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                 "region_replication" to "$regionReplicationCount"
         )
 
+        // Sort the collections by size, this ensures that smaller tables are not being created asynchronously
+        // when a synchronous large table creation request is sent off.
         collectionDetailsMap.entries
             .sortedBy { (_, size) -> -size}
             .chunked(chunkSize)
