@@ -28,7 +28,8 @@ data class HBaseConfiguration @ExperimentalTime constructor(
         var regionTargetSize: String? = "NOT_SET",
         var regionServerCount: String? = "NOT_SET",
         var chunkSize: String? = "NOT_SET",
-        var creationTimeoutSeconds: Int = 1.hours.inSeconds.toInt()) {
+        var creationTimeoutSeconds: Int = 1.hours.inSeconds.toInt(),
+        var largeTableThreshold: Int = 500) {
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
 
@@ -95,7 +96,6 @@ data class HBaseConfiguration @ExperimentalTime constructor(
     @Bean
     fun regionReplicationCount() = regionReplicationCount!!.toInt()
 
-
     @Bean
     fun regionTargetSize() = regionTargetSize!!.toInt()
 
@@ -104,6 +104,9 @@ data class HBaseConfiguration @ExperimentalTime constructor(
 
     @Bean
     fun creationTimeoutSeconds() = creationTimeoutSeconds
+
+    @Bean
+    fun largeTableThreshold() = largeTableThreshold
 
     @Bean
     fun chunkSize() = chunkSize!!.toInt()

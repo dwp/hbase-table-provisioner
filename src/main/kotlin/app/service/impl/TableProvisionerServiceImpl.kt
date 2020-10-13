@@ -19,7 +19,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                                   @Qualifier("regionServerCount")
                                   private val regionServerCount: Int,
                                   private val chunkSize: Int,
-                                  private val regionReplicationCount: Int) : TableProvisionerService {
+                                  private val regionReplicationCount: Int,
+                                  private val largeTableThreshold: Int) : TableProvisionerService {
 
     @ExperimentalTime
     override fun provisionHbaseTable() {
@@ -70,7 +71,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                             "collection_size_percentage" to "${(size / totalBytes) * 100}")
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         val splits = calculateSplits(collectionRegionSize)
-                        if (splits.size > 500) {
+                        if (splits.size > largeTableThreshold) {
                             hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, collectionRegionSize, splits)
                         }
                         else {
