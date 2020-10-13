@@ -25,7 +25,8 @@ class TableProvisionerServiceImplTest {
         val regionServerCount = 3
         val regionReplicationCount = 3
 
-        val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize, regionServerCount, 10, regionReplicationCount)
+        val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize,
+            regionServerCount, 10, regionReplicationCount, 10)
 
         service.provisionHbaseTable()
 
@@ -59,7 +60,8 @@ class TableProvisionerServiceImplTest {
         val regionServerCount = 3
         val regionReplicationCount = 3
 
-        val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize, regionServerCount, 10, regionReplicationCount)
+        val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize,
+            regionServerCount, 10, regionReplicationCount, 10)
 
         service.provisionHbaseTable()
 
