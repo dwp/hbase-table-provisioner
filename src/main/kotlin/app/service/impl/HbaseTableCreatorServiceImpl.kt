@@ -88,7 +88,7 @@ class HbaseTableCreatorServiceImpl(
                     while (!hbaseConnection.admin.isTableAvailable(hbaseTableName)) {
                         logger.info("Waiting for table to be available", "table" to "$hbaseTableName",
                             "operation_timeout" to "${creationTimeoutSeconds.seconds}")
-                        delay(10.seconds)
+                        delay(5.seconds)
                     }
                 }
 

@@ -61,7 +61,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
             .chunked(chunkSize).forEach {
             runBlocking {
                 it.forEach { (collectionName, size) ->
-                    launch(Dispatchers.IO) {
+                    launch {
                         logger.info("Provisioning table",
                                 "current_chunk" to "${currentChunk++}",
                                 "chunk_size" to "$chunkSize",
