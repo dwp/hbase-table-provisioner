@@ -56,19 +56,18 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderServiceIm
                 "region_replication" to "$regionReplicationCount"
         )
 
-        var currentChunk = 0
         collectionDetailsMap.entries
             .sortedBy { (_, size) -> -size}
             .chunked(chunkSize)
-            .forEachIndexed { index, chunk ->
+            .forEachIndexed { chunkIndex, chunk ->
                 runBlocking {
-                    chunk.forEach { (collectionName, size) ->
-                        logger.info("Provisioning table",
-                            "current_chunk" to "${currentChunk++}",
-                            "chunk_size" to "$chunkSize",
+                    chunk.forEachIndexed { tableIndex, (collectionName, size) ->
+                        logger.info(
+                            "Provisioning table", "collection_name" to "$collectionName",
+                            "table_number" to "${chunkSize * chunkIndex + tableIndex}",
+                            "total_table_number" to "${collectionDetailsMap.size}",
                             "region_replication" to "$regionReplicationCount", "size" to "$size",
-                            "collection_name" to "$collectionName",
-                            "collection_size_percentage" to "${(size / totalBytes) * 100}")
+                            "collection_size_percentage" to String.format("%.02f%%", (size.toFloat() / totalBytes) * 100))
                         val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
                         val splits = calculateSplits(collectionRegionSize)
                         if (splits.size > largeTableThreshold) {
