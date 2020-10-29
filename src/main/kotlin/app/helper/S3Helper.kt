@@ -5,5 +5,5 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request
 import com.amazonaws.services.s3.model.ListObjectsV2Result
 
 interface S3Helper {
-    fun getListOfS3ObjectsResult(awsS3Client: AmazonS3, request: ListObjectsV2Request): ListObjectsV2Result?
+    fun getListOfS3ObjectsResult(awsS3Client: AmazonS3, request: ListObjectsV2Request): ListObjectsV2Result
 }

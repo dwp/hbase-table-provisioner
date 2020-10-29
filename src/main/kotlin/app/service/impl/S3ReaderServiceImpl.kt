@@ -1,5 +1,6 @@
 package app.service.impl
 
+import app.helper.S3Helper
 import app.helper.impl.S3HelperImpl
 import app.service.S3ReaderService
 import app.util.CoalescingUtil
@@ -12,7 +13,7 @@ import uk.gov.dwp.dataworks.logging.DataworksLogger
 
 @Service
 class S3ReaderServiceImpl(val s3Client: AmazonS3,
-                          val s3Helper: S3HelperImpl,
+                          val s3Helper: S3Helper,
                           val inputBucket: String,
                           val inputBasePath: String,
                           val prefixPaths: String,
@@ -31,7 +32,16 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
 
         prefixPaths.split(",").forEach { prefixPath ->
             logger.info("Getting collection details for source path", "prefix_path" to prefixPath)
-            collectionDetailsMap.putAll(getCollectionNamesAndSizesInPath(prefixPath))
+            getCollectionNamesAndSizesInPath(prefixPath).forEach { (key, size) ->
+                if (collectionDetailsMap.containsKey(key)) {
+                    collectionDetailsMap[key]?.let {
+                        collectionDetailsMap.put(key, it + size)
+                    }
+                }
+                else {
+                    collectionDetailsMap.put(key, size)
+                }
+            }
         }
 
         logger.info("Retrieved collections from S3", "number_of_collections" to collectionDetailsMap.size.toString())
