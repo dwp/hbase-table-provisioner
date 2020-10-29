@@ -75,7 +75,7 @@ class HbaseTableCreatorServiceImpl(
             withTimeoutOrNull(creationTimeoutSeconds.seconds) {
                 val duration = measureTime {
                     if (splits.isNotEmpty()) {
-                        logger.info("Creating table ansynchronoulsy", "table" to "$hbaseTable",
+                        logger.info("Creating table asynchronously", "table" to "$hbaseTable",
                             "splits" to "${splits.size}", "operation_timeout" to "${creationTimeoutSeconds.seconds}")
                         hbaseConnection.admin.createTableAsync(hbaseTable, splits.toTypedArray())
                     }
