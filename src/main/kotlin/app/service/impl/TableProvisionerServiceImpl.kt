@@ -22,6 +22,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderService,
                                   private val chunkSize: Int,
                                   private val regionReplicationCount: Int,
                                   private val largeTableThreshold: Int,
+                                  @Qualifier("adhocSpecifications")
                                   private val adhocSpecifications: Map<String, Int>): TableProvisionerService {
 
     @ExperimentalTime

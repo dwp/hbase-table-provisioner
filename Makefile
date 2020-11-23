@@ -95,3 +95,10 @@ build-base: ## build the base images which certain images extend.
 
 build-htp: local-all ## Build local jar file and HTP image
 	docker-compose -f docker-compose.yaml build hbase-table-provisioner
+
+truncate-hbase: ## truncate all hbase tables.
+	docker exec -i hbase hbase shell <<< list \
+    	| egrep '^[a-z]' \
+        | grep -v '^list' \
+        | while read; do echo truncate \'$$REPLY\'; done \
+        | docker exec -i hbase hbase shell

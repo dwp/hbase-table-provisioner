@@ -31,6 +31,12 @@ class TableProvisionerServiceImplTest {
     }
 
     @Test
+    fun ignoresNotSet() {
+        val map = HBaseConfiguration.adhocSpecifications("NOT_SET")
+        assertEquals(mapOf<String, Int>(), map)
+    }
+
+    @Test
     fun usesAdHocSpecifications() = runBlocking {
         val s3 = s3()
         val hbaseTableCreatorService = mock<HbaseTableCreatorService>()
