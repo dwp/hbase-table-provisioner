@@ -1,41 +1,85 @@
 package app.service.impl
 
+import app.configuration.HBaseConfiguration
+import app.service.HbaseTableCreatorService
+import app.service.S3ReaderService
 import com.nhaarman.mockitokotlin2.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 class TableProvisionerServiceImplTest {
 
-    @ExperimentalTime
     @Test
-    suspend fun shouldProvisionHbaseTablesWhenRequestedGivenCollectionsExist() {
+    fun processesMultipleAdhocSpecifications() {
+        val map = HBaseConfiguration.adhocSpecifications("$table1,$table1Regions|$table2,$table2Regions")
+        assertEquals(mapOf(table1 to table1Regions, table2 to table2Regions), map)
+    }
 
-        val collectionSummaries = mockCollectionSummaries()
+    @Test
+    fun processesSingleAdhocSpecifications() {
+        val map = HBaseConfiguration.adhocSpecifications("$table1,$table1Regions")
+        assertEquals(mapOf(table1 to table1Regions), map)
+    }
 
-        val s3ReaderServiceMock = mock<S3ReaderServiceImpl> {
-            on {
-                getCollectionSummaries()
-            } doReturn collectionSummaries
+    @Test
+    fun ignoresEmptySpecifications() {
+        val map = HBaseConfiguration.adhocSpecifications("")
+        assertEquals(mapOf<String, Int>(), map)
+    }
+
+    @Test
+    fun ignoresNotSet() {
+        val map = HBaseConfiguration.adhocSpecifications("NOT_SET")
+        assertEquals(mapOf<String, Int>(), map)
+    }
+
+    @Test
+    fun usesAdHocSpecifications() = runBlocking {
+        val s3 = s3()
+        val hbaseTableCreatorService = mock<HbaseTableCreatorService>()
+        val adhocTableCount = 10
+        val adhocSpecifications = (1 .. adhocTableCount).map {
+            Pair("database:collection$it", it * 10)
+        }.toMap()
+
+        val service = tableProvisionerService(s3, hbaseTableCreatorService, adhocSpecifications)
+
+        service.provisionHbaseTables()
+        val collectionCaptor = argumentCaptor<String>()
+        val splitCaptor = argumentCaptor<List<ByteArray>>()
+        verify(hbaseTableCreatorService, times(adhocTableCount)).createHbaseTableFromProps(collectionCaptor.capture(),
+                                                                                          splitCaptor.capture())
+
+        collectionCaptor.allValues.forEachIndexed { index, tableName ->
+            assertEquals("database:collection${index + 1}", tableName)
         }
 
-        val hbaseTableCreatorMock = mock<HbaseTableCreatorServiceImpl>()
+        splitCaptor.allValues.forEachIndexed { index, splits ->
+            assertEquals(((index + 1) * 10) - 1, splits.size)
+        }
 
-        val regionTargetSize = 1
-        val regionServerCount = 3
-        val regionReplicationCount = 3
+        verifyNoMoreInteractions(hbaseTableCreatorService)
+        verifyZeroInteractions(s3)
+    }
 
-        val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize,
-            regionServerCount, 10, regionReplicationCount, 10)
 
-        service.provisionHbaseTable()
+    @Test
+    suspend fun shouldProvisionHbaseTablesWhenRequestedGivenCollectionsExist() {
+        val s3 = s3()
+        val hbaseTableCreator = mock<HbaseTableCreatorServiceImpl>()
 
-        verify(s3ReaderServiceMock, times(1)).getCollectionSummaries()
+        val service = tableProvisionerService(s3, hbaseTableCreator,
+                mapOf(table1 to 10, table2 to 20))
+
+        service.provisionHbaseTables()
+
+        verify(s3, times(1)).getCollectionSummaries()
         val collectionCaptor = argumentCaptor<String>()
-        val capacityCaptor = argumentCaptor<Int>()
         val splitsCaptor = argumentCaptor<List<ByteArray>>()
-        verify(hbaseTableCreatorMock, times(2)).createHbaseTableFromProps(collectionCaptor.capture(),
-                                                                                       capacityCaptor.capture(),
+        verify(hbaseTableCreator, times(2)).createHbaseTableFromProps(collectionCaptor.capture(),
                                                                                        splitsCaptor.capture())
 
         collectionCaptor.allValues.forEachIndexed { index, s ->
@@ -43,6 +87,13 @@ class TableProvisionerServiceImplTest {
             assertEquals(expected, s)
         }
     }
+
+    private fun s3(): S3ReaderService =
+            mock {
+                on {
+                    getCollectionSummaries()
+                } doReturn mockCollectionSummaries()
+            }
 
     @ExperimentalTime
     @Test
@@ -61,14 +112,29 @@ class TableProvisionerServiceImplTest {
         val regionReplicationCount = 3
 
         val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize,
-            regionServerCount, 10, regionReplicationCount, 10)
+            regionServerCount, 10, regionReplicationCount, 10, mapOf())
 
-        service.provisionHbaseTable()
+        service.provisionHbaseTables()
 
         verify(s3ReaderServiceMock, times(1)).getCollectionSummaries()
         verifyZeroInteractions(hbaseTableCreatorMock)
     }
 
+    private fun tableProvisionerService(s3: S3ReaderService,
+                                        hbaseTableCreatorService: HbaseTableCreatorService,
+                                        adHocSpecifications: Map<String, Int>): TableProvisionerServiceImpl =
+            TableProvisionerServiceImpl(s3, hbaseTableCreatorService, regionTargetSize,
+                    regionServerCount, 10, regionReplicationCount, 10,
+                    adHocSpecifications)
+
     private fun mockCollectionSummaries(): MutableMap<String, Long> =
             mutableMapOf("collection_1" to 100, "collection_2" to 300)
+
+    private val regionTargetSize = 1
+    private val regionServerCount = 3
+    private val regionReplicationCount = 3
+    private val table1 = "database:collection1"
+    private val table2 = "database:collection2"
+    private val table1Regions = 10
+    private val table2Regions = 20
 }

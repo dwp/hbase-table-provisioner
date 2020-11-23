@@ -14,7 +14,7 @@ import kotlin.time.ExperimentalTime
 class App(private val service: TableProvisionerServiceImpl) : CommandLineRunner {
     @ExperimentalTime
     override fun run(vararg args: String?) {
-        service.provisionHbaseTable()
+        service.provisionHbaseTables()
     }
 }
 

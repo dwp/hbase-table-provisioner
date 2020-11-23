@@ -20,16 +20,14 @@ class HbaseTableCreatorServiceImpl(
         private val creationTimeoutSeconds: Int) : HbaseTableCreatorService {
 
     @ExperimentalTime
-    override suspend fun createHbaseTableFromProps(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+    override suspend fun createHbaseTableFromProps(collectionName: String, splits: List<ByteArray>) {
         ensureNamespaceExists(collectionName)
 
         if (checkIfTableExists(collectionName)) {
             logger.warn("Table already exists in hbase for collection",
-                "table_name" to collectionName,
-                "region_capacity" to regionCapacity.toString()
-            )
+                "table_name" to collectionName)
         } else {
-            createHbaseTable(collectionName, regionCapacity, splits)
+            createHbaseTable(collectionName, splits)
         }
     }
 
@@ -51,13 +49,10 @@ class HbaseTableCreatorServiceImpl(
     }
 
     @ExperimentalTime
-    private suspend fun createHbaseTable(collectionName: String, regionCapacity: Int, splits: List<ByteArray>) {
+    private suspend fun createHbaseTable(collectionName: String, splits: List<ByteArray>) {
         try {
-            logger.info(
-                "Creating Hbase table",
-                "table_name" to collectionName,
-                "region_capacity" to regionCapacity.toString()
-            )
+            logger.info("Creating Hbase table",
+                "table_name" to collectionName)
 
             val hbaseTableName = hbaseTableName(collectionName)
 
@@ -93,16 +88,13 @@ class HbaseTableCreatorServiceImpl(
                 }
 
                 logger.info("Created Hbase table","table_name" to collectionName,
-                    "region_capacity" to regionCapacity.toString(), "duration" to "$duration",
+                    "duration" to "$duration",
                     "operation_timeout" to "${creationTimeoutSeconds.seconds}")
             }
 
         } catch (e: TableExistsException) {
-            logger.warn(
-                "Exception caught when attempting to create Hbase table",
-                "table_name" to collectionName,
-                "region_capacity" to regionCapacity.toString()
-            )
+            logger.warn("Exception caught when attempting to create Hbase table",
+                "table_name" to collectionName)
         }
     }
 

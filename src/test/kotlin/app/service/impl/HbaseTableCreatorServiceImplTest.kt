@@ -24,8 +24,6 @@ class HbaseTableCreatorServiceImplTest {
         val regionReplicationCount = 1
         val splits = listOf<ByteArray>(ByteArray(2))
 
-        val regionCapacity = 1
-
         val expectedHbaseTableName = TableName.valueOf(tableName)
 
         val expectedHbaseTable = HTableDescriptor(expectedHbaseTableName).apply {
@@ -50,7 +48,7 @@ class HbaseTableCreatorServiceImplTest {
         }
 
         val service = HbaseTableCreatorServiceImpl(connection, columnFamily, regionReplicationCount, 60)
-        service.createHbaseTableFromProps(tableName, regionCapacity, splits)
+        service.createHbaseTableFromProps(tableName, splits)
 
         verify(adm, times(1)).listTableNames()
         verify(adm, times(1)).listNamespaceDescriptors()
@@ -61,4 +59,5 @@ class HbaseTableCreatorServiceImplTest {
         verify(adm, times(2)).isTableAvailable(expectedHbaseTableName)
         verifyNoMoreInteractions(adm)
     }
+
 }
