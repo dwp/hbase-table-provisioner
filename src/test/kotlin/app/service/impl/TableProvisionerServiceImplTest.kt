@@ -13,9 +13,15 @@ import kotlin.time.ExperimentalTime
 class TableProvisionerServiceImplTest {
 
     @Test
-    fun processesAdhocSpecifications() {
+    fun processesMultipleAdhocSpecifications() {
         val map = HBaseConfiguration.adhocSpecifications("database:collection1,10|database:collection2,20")
         assertEquals(mapOf("database:collection1" to 10, "database:collection2" to 20), map)
+    }
+
+    @Test
+    fun processesSingleAdhocSpecifications() {
+        val map = HBaseConfiguration.adhocSpecifications("database:collection1,10")
+        assertEquals(mapOf("database:collection1" to 10), map)
     }
 
     @Test
