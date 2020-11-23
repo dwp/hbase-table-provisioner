@@ -29,7 +29,8 @@ data class HBaseConfiguration @ExperimentalTime constructor(
         var regionServerCount: String? = "NOT_SET",
         var chunkSize: String? = "NOT_SET",
         var creationTimeoutSeconds: Int = 1.hours.inSeconds.toInt(),
-        var largeTableThreshold: Int = 500) {
+        var largeTableThreshold: Int = 500,
+        var adhocSpecifications: String = "") {
 
     fun hbaseConfiguration(): org.apache.hadoop.conf.Configuration {
 
@@ -110,6 +111,22 @@ data class HBaseConfiguration @ExperimentalTime constructor(
 
     @Bean
     fun chunkSize() = chunkSize!!.toInt()
+
+    @Bean
+    fun adhocSpecifications() = adhocSpecifications(adhocSpecifications)
+
+    fun adhocSpecifications(spec: String): Map<String, Int> =
+        when {
+            spec.isNotBlank() -> {
+                spec.split("|").map {
+                    val (table, regionCount) = it.split(",")
+                    Pair(table, regionCount.toInt())
+                }.toMap()
+            }
+            else -> {
+                mapOf()
+            }
+        }
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
