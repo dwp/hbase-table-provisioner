@@ -14,14 +14,14 @@ class TableProvisionerServiceImplTest {
 
     @Test
     fun processesMultipleAdhocSpecifications() {
-        val map = HBaseConfiguration.adhocSpecifications("database:collection1,10|database:collection2,20")
-        assertEquals(mapOf("database:collection1" to 10, "database:collection2" to 20), map)
+        val map = HBaseConfiguration.adhocSpecifications("$table1,$table1Regions|$table2,$table2Regions")
+        assertEquals(mapOf(table1 to table1Regions, table2 to table2Regions), map)
     }
 
     @Test
     fun processesSingleAdhocSpecifications() {
-        val map = HBaseConfiguration.adhocSpecifications("database:collection1,10")
-        assertEquals(mapOf("database:collection1" to 10), map)
+        val map = HBaseConfiguration.adhocSpecifications("$table1,$table1Regions")
+        assertEquals(mapOf(table1 to table1Regions), map)
     }
 
     @Test
@@ -72,7 +72,7 @@ class TableProvisionerServiceImplTest {
         val hbaseTableCreator = mock<HbaseTableCreatorServiceImpl>()
 
         val service = tableProvisionerService(s3, hbaseTableCreator,
-                mapOf("database:collection1" to 10, "database:collection2" to 20))
+                mapOf(table1 to 10, table2 to 20))
 
         service.provisionHbaseTables()
 
@@ -133,5 +133,8 @@ class TableProvisionerServiceImplTest {
     private val regionTargetSize = 1
     private val regionServerCount = 3
     private val regionReplicationCount = 3
-
+    private val table1 = "database:collection1"
+    private val table2 = "database:collection2"
+    private val table1Regions = 10
+    private val table2Regions = 20
 }
