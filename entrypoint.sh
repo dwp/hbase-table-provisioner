@@ -8,4 +8,4 @@ export HBASE_ADHOC_SPECIFICATIONS="$3"
 echo "Running jar using entrypoint S3_PREFIXES=${S3_PREFIXES} and CORRELATION_ID=${CORRELATION_ID} and HBASE_ADHOC_SPECIFICATIONS=$HBASE_ADHOC_SPECIFICATIONS"
 
 export CORRELATION_ID=${CORRELATION_ID}
-java -Dcollections.prefix_paths="${S3_PREFIXES}" -D -jar ./hbase-table-provisioner.jar
+java -Dcollections.prefix_paths="${S3_PREFIXES}" -jar ./hbase-table-provisioner.jar
