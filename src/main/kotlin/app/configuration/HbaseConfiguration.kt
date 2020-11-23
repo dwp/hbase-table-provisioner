@@ -115,20 +115,20 @@ data class HBaseConfiguration @ExperimentalTime constructor(
     @Bean
     fun adhocSpecifications() = adhocSpecifications(adhocSpecifications)
 
-    fun adhocSpecifications(spec: String): Map<String, Int> =
-        when {
-            spec.isNotBlank() -> {
-                spec.split("|").map {
-                    val (table, regionCount) = it.split(",")
-                    Pair(table, regionCount.toInt())
-                }.toMap()
-            }
-            else -> {
-                mapOf()
-            }
-        }
 
     companion object {
         val logger = DataworksLogger.getLogger(HBaseConfiguration::class.toString())
+        fun adhocSpecifications(spec: String): Map<String, Int> =
+                when {
+                    spec.isNotBlank() -> {
+                        spec.split("|").map {
+                            val (table, regionCount) = it.split(",")
+                            Pair(table, regionCount.toInt())
+                        }.toMap()
+                    }
+                    else -> {
+                        mapOf()
+                    }
+                }
     }
 }

@@ -1,8 +1,10 @@
 package app.service.impl
 
+import app.configuration.HBaseConfiguration
 import app.service.HbaseTableCreatorService
 import app.service.S3ReaderService
 import com.nhaarman.mockitokotlin2.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.time.ExperimentalTime
@@ -11,11 +13,23 @@ import kotlin.time.ExperimentalTime
 class TableProvisionerServiceImplTest {
 
     @Test
-    suspend fun usesAdHocSpecifications() {
+    fun processesAdhocSpecifications() {
+        val map = HBaseConfiguration.adhocSpecifications("database:collection1,10|database:collection2,20")
+        assertEquals(mapOf("database:collection1" to 10, "database:collection2" to 20), map)
+    }
+
+    @Test
+    fun ignoresEmptySpecifications() {
+        val map = HBaseConfiguration.adhocSpecifications("")
+        assertEquals(mapOf<String, Int>(), map)
+    }
+
+    @Test
+    fun usesAdHocSpecifications() = runBlocking {
         val s3 = s3()
         val hbaseTableCreatorService = mock<HbaseTableCreatorService>()
         val adhocTableCount = 10
-        val adhocSpecifications = (1 .. adhocTableCount + 1).map {
+        val adhocSpecifications = (1 .. adhocTableCount).map {
             Pair("database:collection$it", it * 10)
         }.toMap()
 
@@ -28,23 +42,17 @@ class TableProvisionerServiceImplTest {
                                                                                           splitCaptor.capture())
 
         collectionCaptor.allValues.forEachIndexed { index, tableName ->
-            assertEquals("database:collection$index", tableName)
+            assertEquals("database:collection${index + 1}", tableName)
         }
 
         splitCaptor.allValues.forEachIndexed { index, splits ->
-            assertEquals(index * 10, splits.size)
+            assertEquals(((index + 1) * 10) - 1, splits.size)
         }
 
         verifyNoMoreInteractions(hbaseTableCreatorService)
         verifyZeroInteractions(s3)
     }
 
-    private fun tableProvisionerService(s3: S3ReaderService,
-                                        hbaseTableCreatorService: HbaseTableCreatorService,
-                                        adHocSpecifications: Map<String, Int>): TableProvisionerServiceImpl =
-            TableProvisionerServiceImpl(s3, hbaseTableCreatorService, regionTargetSize,
-                    regionServerCount, 10, regionReplicationCount, 10,
-                    adHocSpecifications)
 
     @Test
     suspend fun shouldProvisionHbaseTablesWhenRequestedGivenCollectionsExist() {
@@ -99,6 +107,13 @@ class TableProvisionerServiceImplTest {
         verify(s3ReaderServiceMock, times(1)).getCollectionSummaries()
         verifyZeroInteractions(hbaseTableCreatorMock)
     }
+
+    private fun tableProvisionerService(s3: S3ReaderService,
+                                        hbaseTableCreatorService: HbaseTableCreatorService,
+                                        adHocSpecifications: Map<String, Int>): TableProvisionerServiceImpl =
+            TableProvisionerServiceImpl(s3, hbaseTableCreatorService, regionTargetSize,
+                    regionServerCount, 10, regionReplicationCount, 10,
+                    adHocSpecifications)
 
     private fun mockCollectionSummaries(): MutableMap<String, Long> =
             mutableMapOf("collection_1" to 100, "collection_2" to 300)
