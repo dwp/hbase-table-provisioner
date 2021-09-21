@@ -66,10 +66,13 @@ s3-up: ## Bring up the S3 localstack service
 	}
 	docker-compose up --build s3-init
 
-up-htp:  ## Bring up Provisioner in Docker
-	docker-compose -f docker-compose.yaml up hbase-table-provisioner
+up-htp-hdi:  ## Bring up Provisioner in Docker
+	docker-compose -f docker-compose.yaml up hbase-table-provisioner-hdi-inputs
 
-up: services up-htp ## Bring up Provisioner in Docker with supporting services
+up-htp-cdl:  ## Bring up Provisioner in Docker
+	docker-compose up hbase-table-provisioner-cdl-inputs
+
+up: services up-htp-hdi up-htp-cdl ## Bring up Provisioner in Docker with supporting services
 
 restart: ## Restart HTP and all supporting services
 	docker-compose restart
@@ -88,10 +91,10 @@ build-base: ## build the base images which certain images extend.
 	@{ \
 		pushd docker; \
 		cp ../settings.gradle.kts ../gradle.properties ../build.gradle.kts . ; \
-		docker build --tag dwp-gradle-hbase-table-provisioner:latest --file ./gradle/Dockerfile . ; \
+		docker build --tag dwp-gradle-hbase-table-provisioner-hdi-inputs:latest --file ./gradle/Dockerfile . ; \
 		rm -rf settings.gradle.kts gradle.properties build.gradle.kts; \
 		popd; \
 	}
 
 build-htp: local-all ## Build local jar file and HTP image
-	docker-compose -f docker-compose.yaml build hbase-table-provisioner
+	docker-compose -f docker-compose.yaml build hbase-table-provisioner-hdi-inputs

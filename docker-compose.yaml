@@ -1,45 +1,37 @@
 version: '3'
 
 services:
-  hbase-table-provisioner:
+  hbase-table-provisioner-hdi-inputs:
     image: hbase-table-provisioner:latest
     build: ./
-    container_name: hbase-table-provisioner
+    container_name: hbase-table-provisioner-hdi-inputs
     depends_on:
       - hbase
     # This command is to match what we do in AWS batch
-    command: ["adb/2020-06-23,cdb/2020-04-01", "dummy-correlation-id"]
     environment:
-      CONTAINER_VERSION: "latest"
-      ENVIRONMENT: "local-dev"
-      APPLICATION: "hbase-table-provisioner"
-      COMPONENT: "jar-file"
-      APP_VERSION: "test"
-      LOG_LEVEL: "INFO"
-      HBASE_CHUNK_SIZE: "1"
-      HBASE_ZOOKEEPER_PARENT: "/hbase"
-      HBASE_ZOOKEEPER_PORT: "2181"
-      HBASE_ZOOKEEPER_QUORUM: "hbase"
-      HBASE_RPC_READ_TIMEOUT_MILLISECONDS: "1200"
-      HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_MILLISECONDS: "12000"
-      HBASE_CLIENT_OPERATION_TIMEOUT_MILLISECONDS: "1200"
-      HBASE_PAUSE_MILLISECONDS: "50"
-      HBASE_RETRIES: "3"
-      HBASE_COLUMN_FAMILY: "cf"
-      HBASE_COLUMN_QUALIFIER: "record"
-      HBASE_REGION_REPLICATION_COUNT: "3"
-      HBASE_REGION_TARGET_SIZE: "12"
-      HBASE_REGION_SERVER_COUNT: "8"
-      HBASE_COALESCE_COLLECTION_REGEX_PATTERN: '(?<database>[\w-]+)\.(?<collection>[\w-]+)'
-      COLLECTIONS_INPUT_BUCKET: "input-bucket"
-      COLLECTIONS_INPUT_BASE_PATH: "business-data/mongo"
       COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '^[\w]+\-[\w]+\/[\w]+\/[\w]+\/\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])\/[\w-]+\.[\w-]+\.[0-9]+\.json.gz.enc'
-      COLLECTIONS_NAME_REGEX_PATTERN: '([-\w]+\.[-.\w]+)\.[0-9]+\.json\.gz\.enc'
-      S3_CLIENT_REGION: "eu-west-2"
-      S3_MAX_ATTEMPTS: "5"
-      S3_INITIAL_BACKOFF_MILLIS: "1000"
-      S3_BACKOFF_MULTIPLIER: "2"
-      SPRING_PROFILES_ACTIVE: "LOCAL_S3"
+      COLLECTIONS_INPUT_BUCKET: input-bucket
+      COLLECTIONS_INPUT_BASE_PATH: business-data/mongo
+    command:
+      - "adb/2020-06-23,cdb/2020-04-01"
+      - "hdi-inputs"
+
+  hbase-table-provisioner-cdl-inputs:
+    image: hbase-table-provisioner:latest
+    build: ./
+    container_name: hbase-table-provisioner-cdl-inputs
+    environment:
+      COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '(?:db\.)?([-.\w]+)\.([-.\w]+)_\d+_\d+_\d+.jsonl.gz$$'
+      COLLECTIONS_INPUT_TYPE: 'CDL'
+      COLLECTIONS_INPUT_BUCKET: corporate-storage-input
+      COLLECTIONS_INPUT_BASE_PATH: corporate_storage/ucfs_main
+    command:
+      - "NOT_SET"
+      - "cdl-inputs"
+
+  #collections.prefix_paths=adb/2020-06-23,cdb/2020-04-01
+  #collections.inputType=CDL
+  #collections.filenameFormatRegexPattern=[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc
 
   hbase:
     image: harisekhon/hbase:1.4

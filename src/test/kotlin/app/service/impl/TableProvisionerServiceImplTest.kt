@@ -6,6 +6,7 @@ import app.service.S3ReaderService
 import com.nhaarman.mockitokotlin2.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertIterableEquals
 import org.junit.jupiter.api.Test
 import kotlin.time.ExperimentalTime
 
@@ -37,7 +38,52 @@ class TableProvisionerServiceImplTest {
     }
 
     @Test
-    fun usesAdHocSpecifications() = runBlocking {
+    fun shouldProcessCdlInputs() = runBlocking {
+        val hbaseTableCreatorService = mock<HbaseTableCreatorService>()
+        val s3Service = mock<S3ReaderService> {
+            on { collectionSizes() } doReturn mapOf("database:collection1" to 1_000,
+                "database:collection2" to 5_000,
+                "database:collection3" to 20_000)
+        }
+        val regionTargetSize = 10
+        val regionServerCount = 5
+        val chunkSize = 3
+        val regionReplicationCount = 2
+        val largeTableThreshold = 10_000
+
+        val service = TableProvisionerServiceImpl(s3Service, hbaseTableCreatorService,
+            regionTargetSize, regionServerCount, chunkSize, regionReplicationCount, largeTableThreshold, "CDL", mapOf())
+
+        service.provisionHbaseTables()
+        verify(s3Service, times(1)).collectionSizes()
+        verifyNoMoreInteractions(s3Service)
+        val tableNameCaptor = argumentCaptor<String>()
+        val splitCaptor = argumentCaptor<List<ByteArray>>()
+        verify(hbaseTableCreatorService, times(3)).createHbaseTableFromProps(tableNameCaptor.capture(), splitCaptor.capture())
+
+        assertIterableEquals(listOf("database:collection1", "database:collection2", "database:collection3"), tableNameCaptor.allValues.sorted())
+
+        splitCaptor.allValues.forEachIndexed { index, value ->
+            when (tableNameCaptor.allValues[index]) {
+                "database:collection1" -> {
+                    assertEquals(expectedRegionCount(regionTargetSize, regionServerCount, 1, 26), value.size)
+                }
+                "database:collection2" -> {
+                    assertEquals(expectedRegionCount(regionTargetSize, regionServerCount, 5, 26), value.size)
+
+                }
+                "database:collection3" -> {
+                    assertEquals(expectedRegionCount(regionTargetSize, regionServerCount, 20, 26), value.size)
+                }
+            }
+        }
+    }
+
+    private fun expectedRegionCount(regionTargetSize: Int, regionServerCount: Int, proportion: Int, total: Int) =
+        (regionTargetSize * regionServerCount / 2) * proportion / total
+
+    @Test
+    suspend fun usesAdHocSpecifications() {
         val s3 = s3()
         val hbaseTableCreatorService = mock<HbaseTableCreatorService>()
         val adhocTableCount = 10
@@ -112,7 +158,7 @@ class TableProvisionerServiceImplTest {
         val regionReplicationCount = 3
 
         val service = TableProvisionerServiceImpl(s3ReaderServiceMock, hbaseTableCreatorMock, regionTargetSize,
-            regionServerCount, 10, regionReplicationCount, 10, mapOf())
+            regionServerCount, 10, regionReplicationCount, 10, "", mapOf())
 
         service.provisionHbaseTables()
 
@@ -124,7 +170,7 @@ class TableProvisionerServiceImplTest {
                                         hbaseTableCreatorService: HbaseTableCreatorService,
                                         adHocSpecifications: Map<String, Int>): TableProvisionerServiceImpl =
             TableProvisionerServiceImpl(s3, hbaseTableCreatorService, regionTargetSize,
-                    regionServerCount, 10, regionReplicationCount, 10,
+                    regionServerCount, 10, regionReplicationCount, 10, "",
                     adHocSpecifications)
 
     private fun mockCollectionSummaries(): MutableMap<String, Long> =
