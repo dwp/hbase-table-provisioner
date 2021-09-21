@@ -13,7 +13,8 @@ data class CollectionsS3Configuration(
         var prefixPaths: String? = "NOT_SET",
         var filenameFormatRegexPattern: String? = "NOT_SET",
         var filenameFormatDataExtensionPattern: String? = "NOT_SET",
-        var nameRegexPattern: String? = "NOT_SET"
+        var nameRegexPattern: String? = "NOT_SET",
+        var inputType: String = ""
 ) {
 
     @Bean
@@ -39,4 +40,7 @@ data class CollectionsS3Configuration(
     @Bean
     @Qualifier("nameRegexPattern")
     fun nameRegexPattern() = nameRegexPattern
+
+    @Bean
+    fun inputType() = inputType
 }

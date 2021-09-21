@@ -1,7 +1,6 @@
 package app.service.impl
 
 import app.helper.S3Helper
-import app.helper.impl.S3HelperImpl
 import app.service.S3ReaderService
 import app.util.CoalescingUtil
 import com.amazonaws.services.s3.AmazonS3
@@ -18,8 +17,34 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
                           val inputBasePath: String,
                           val prefixPaths: String,
                           val filenameFormatRegexPattern: String,
-                          val filenameFormatDataExtensionPattern: String,
                           val nameRegexPattern: String) : S3ReaderService {
+
+    override fun collectionSizes(): Map<String, Long> =
+        objectSummaries().asSequence()
+            .map {  Pair(it.key, it.size) }
+            .mapNotNull { (key, size) ->
+                filenameRegex.find(key)?.let {
+                    val (database, collection) = it.destructured
+                    Pair("${database.replace('-', '_')}:$collection", size)
+                }
+            }.groupingBy { (topic, _) -> topic }
+            .fold(0L) { i, (_, size) -> i + size }
+
+
+    private final tailrec fun objectSummaries(accumulated: List<S3ObjectSummary> = listOf(), continuationToken: String? = null): List<S3ObjectSummary> {
+        val response = s3Client.listObjectsV2(ListObjectsV2Request().apply {
+            withBucketName(inputBucket)
+            withPrefix(inputBasePath)
+            withMaxKeys(5)
+            withContinuationToken(continuationToken)
+        })
+
+        return if (!response.isTruncated) {
+            accumulated + response.objectSummaries
+        } else {
+            objectSummaries(accumulated + response.objectSummaries, response.nextContinuationToken)
+        }
+    }
 
     override fun getCollectionSummaries(): MutableMap<String, Long> {
 
@@ -146,7 +171,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         // single collection names log for HDl and HDI to use - do not remove this plz thx
         logger.info(
             "Removed duplicates and calculated byte size",
-            "prefix_path" to "${sourceDatabasePath}",
+            "prefix_path" to sourceDatabasePath,
             "deduped_collection_size" to topicByteSizeMap.size.toString(),
             "s3_topic_names" to topicS3ToCoalescedNames.keys.sorted().toString(),
             "coalesced_topic_names" to topicS3ToCoalescedNames.values.sorted().toString(),
@@ -155,7 +180,10 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         return topicByteSizeMap
     }
 
+    val filenameRegex by lazy {  Regex(filenameFormatRegexPattern) }
+
     companion object {
         val logger = DataworksLogger.getLogger(S3ReaderServiceImpl::class.toString())
+
     }
 }

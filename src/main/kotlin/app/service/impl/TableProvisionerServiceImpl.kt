@@ -22,6 +22,7 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderService,
                                   private val chunkSize: Int,
                                   private val regionReplicationCount: Int,
                                   private val largeTableThreshold: Int,
+                                  private val inputType: String,
                                   @Qualifier("adhocSpecifications")
                                   private val adhocSpecifications: Map<String, Int>): TableProvisionerService {
 
@@ -30,6 +31,9 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderService,
         when {
             adhocSpecifications.isNotEmpty() -> {
                 preSplitTablesUsingAdHocSpecifications()
+            }
+            inputType == "CDL" -> {
+                splitTablesUsingCdlInputs()
             }
             else -> {
                 preSplitTablesUsingS3Exports()
@@ -47,6 +51,8 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderService,
         }
     }
 
+    private fun splitTablesUsingCdlInputs() = createPreSplitTables(s3ReaderService.collectionSizes())
+
     @ExperimentalTime
     private fun preSplitTablesUsingS3Exports() {
         logger.info("Running provisioner for Hbase tables",
@@ -61,67 +67,69 @@ class TableProvisionerServiceImpl(private val s3ReaderService: S3ReaderService,
             logger.error("No collections to be created in Hbase")
             return
         }
-        logger.info("Found collections to be created in Hbase", "collection_count" to "${collectionDetailsMap.size}")
-        logger.info("List of collections to be created in Hbase", "collection_list" to "${collectionDetailsMap.keys}")
+        createPreSplitTables(collectionDetailsMap)
+    }
 
+    private fun createPreSplitTables(collectionDetailsMap: Map<String, Long>) {
         val totalBytes = getTotalBytesForAllCollections(collectionDetailsMap)
         val totalRegionsForAllRegionServers = regionTargetSize * regionServerCount
         val totalRegionsForAllTables = totalRegionsForAllRegionServers / regionReplicationCount
         val regionUnit = totalBytes / totalRegionsForAllTables
 
         logger.info("Provisioning tables for collections",
-                "number_of_collections" to "${collectionDetailsMap.size}",
-                "region_target_size" to "$regionTargetSize",
-                "region_server_count" to "$regionServerCount",
-                "total_regions" to "$totalRegionsForAllTables",
-                "total_bytes" to "$totalBytes",
-                "region_unit" to regionUnit.toString(),
-                "chunk_size" to "$chunkSize",
-                "region_replication" to "$regionReplicationCount")
+            "number_of_collections" to "${collectionDetailsMap.size}",
+            "region_target_size" to "$regionTargetSize",
+            "region_server_count" to "$regionServerCount",
+            "total_regions" to "$totalRegionsForAllTables",
+            "total_bytes" to "$totalBytes",
+            "region_unit" to regionUnit.toString(),
+            "chunk_size" to "$chunkSize",
+            "region_replication" to "$regionReplicationCount")
 
         // Sort the collections by size, this ensures that smaller tables are not being created asynchronously
         // when a synchronous large table creation request is sent off.
         collectionDetailsMap.entries
-                .sortedBy { (_, size) -> -size }
-                .chunked(chunkSize)
-                .forEachIndexed { chunkIndex, chunk ->
-                    runBlocking {
-                        chunk.forEachIndexed { tableIndex, (collectionName, size) ->
-                            val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
-                            val splits = calculateSplits(collectionRegionSize)
+            .sortedBy { (_, size) -> -size }
+            .chunked(chunkSize)
+            .forEachIndexed { chunkIndex, chunk ->
+                runBlocking {
+                    chunk.forEachIndexed { tableIndex, (collectionName, size) ->
+                        val collectionRegionSize = calculateCollectionRegionSize(regionUnit, size)
+                        val splits = calculateSplits(collectionRegionSize)
 
-                            logger.info("Provisioning table", "collection_name" to "$collectionName",
-                                    "table_number" to "${chunkSize * chunkIndex + tableIndex}",
-                                    "total_table_number" to "${collectionDetailsMap.size}",
-                                    "region_replication" to "$regionReplicationCount", "size" to "$size",
-                                    "region_capacity" to "$collectionRegionSize",
-                                    "split_count" to "${splits.size}",
-                                    "collection_size_percentage" to String.format("%.02f%%", (size.toFloat() / totalBytes) * 100))
+                        logger.info("Provisioning table", "collection_name" to "$collectionName",
+                            "table_number" to "${chunkSize * chunkIndex + tableIndex}",
+                            "total_table_number" to "${collectionDetailsMap.size}",
+                            "region_replication" to "$regionReplicationCount", "size" to "$size",
+                            "region_capacity" to "$collectionRegionSize",
+                            "split_count" to "${splits.size}",
+                            "collection_size_percentage" to String.format("%.02f%%",
+                                (size.toFloat() / totalBytes) * 100))
 
-                            if (splits.size > largeTableThreshold) {
+                        if (splits.size > largeTableThreshold) {
+                            hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, splits)
+                        } else {
+                            launch {
                                 hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, splits)
-                            } else {
-                                launch {
-                                    hbaseTableCreatorServiceImpl.createHbaseTableFromProps(collectionName, splits)
-                                }
                             }
                         }
                     }
                 }
+            }
 
 
         logger.info("Provisioned all tables for collections",
-                "number_of_collections" to "${collectionDetailsMap.size}",
-                "region_target_size" to "$regionTargetSize",
-                "region_server_count" to "$regionServerCount",
-                "total_regions" to "$totalRegionsForAllTables",
-                "total_bytes" to "$totalBytes",
-                "region_unit" to regionUnit.toString(),
-                "chunk_size" to "$chunkSize",
-                "region_replication" to "$regionReplicationCount")
+            "number_of_collections" to "${collectionDetailsMap.size}",
+            "region_target_size" to "$regionTargetSize",
+            "region_server_count" to "$regionServerCount",
+            "total_regions" to "$totalRegionsForAllTables",
+            "total_bytes" to "$totalBytes",
+            "region_unit" to regionUnit.toString(),
+            "chunk_size" to "$chunkSize",
+            "region_replication" to "$regionReplicationCount")
     }
 
-    private fun getTotalBytesForAllCollections(collectionDetailsMap: MutableMap<String, Long>) =
+    private fun getTotalBytesForAllCollections(collectionDetailsMap: Map<String, Long>) =
             collectionDetailsMap.values.sum()
 
     private fun calculateCollectionRegionSize(regionUnit: Long, collectionSize: Long) =
