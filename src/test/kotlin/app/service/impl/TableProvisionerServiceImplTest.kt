@@ -182,7 +182,7 @@ class TableProvisionerServiceImplTest {
         private const val TABLE_1 = "database:collection1"
         private const val TABLE_2 = "database:collection2"
         private const val TABLE_3 = "database:collection3"
-        
+
         private const val regionTargetSize = 1
         private const val regionServerCount = 3
         private const val regionReplicationCount = 3

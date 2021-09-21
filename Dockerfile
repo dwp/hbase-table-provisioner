@@ -18,7 +18,7 @@ RUN adduser --disabled-password --ingroup $GROUP $USER
 COPY entrypoint.sh .
 RUN chmod a+x entrypoint.sh
 COPY ./build/libs/*.jar ./$APP_NAME.jar
-COPY ./application.properties ./application.properties
-RUN chown -R $USER.$USER . && chmod +x ./$APP_NAME.jar ./application.properties
+COPY ./application.properties ./test.properties
+RUN chown -R $USER.$USER . && chmod +x ./$APP_NAME.jar ./test.properties
 
 USER $USER

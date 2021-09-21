@@ -12,6 +12,7 @@ services:
       COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '^[\w]+\-[\w]+\/[\w]+\/[\w]+\/\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])\/[\w-]+\.[\w-]+\.[0-9]+\.json.gz.enc'
       COLLECTIONS_INPUT_BUCKET: input-bucket
       COLLECTIONS_INPUT_BASE_PATH: business-data/mongo
+      SPRING_CONFIG_LOCATION: test.properties
     command:
       - "adb/2020-06-23,cdb/2020-04-01"
       - "hdi-inputs"
@@ -25,13 +26,10 @@ services:
       COLLECTIONS_INPUT_TYPE: 'CDL'
       COLLECTIONS_INPUT_BUCKET: corporate-storage-input
       COLLECTIONS_INPUT_BASE_PATH: corporate_storage/ucfs_main
+      SPRING_CONFIG_LOCATION: test.properties
     command:
       - "NOT_SET"
       - "cdl-inputs"
-
-  #collections.prefix_paths=adb/2020-06-23,cdb/2020-04-01
-  #collections.inputType=CDL
-  #collections.filenameFormatRegexPattern=[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc
 
   hbase:
     image: harisekhon/hbase:1.4
