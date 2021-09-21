@@ -15,9 +15,6 @@ import kotlin.time.ExperimentalTime
 
 class HbaseTableCreatorServiceImplTest {
 
-    fun shouldWork() {
-
-    }
     @ExperimentalTime
     @Test
     fun shouldCreateHbaseTableForCollectionsWhenRequestingGivenTheyDoNotExist() = runBlocking {

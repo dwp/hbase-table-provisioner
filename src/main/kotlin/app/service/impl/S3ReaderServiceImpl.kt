@@ -1,7 +1,6 @@
 package app.service.impl
 
 import app.helper.S3Helper
-import app.helper.impl.S3HelperImpl
 import app.service.S3ReaderService
 import app.util.CoalescingUtil
 import com.amazonaws.services.s3.AmazonS3
