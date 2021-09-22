@@ -35,7 +35,6 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
         val response = s3Client.listObjectsV2(ListObjectsV2Request().apply {
             withBucketName(inputBucket)
             withPrefix(inputBasePath)
-            withMaxKeys(5)
             withContinuationToken(continuationToken)
         })
 
