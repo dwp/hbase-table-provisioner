@@ -92,8 +92,8 @@ class HbaseTableCreatorServiceImpl(
                     "operation_timeout" to "${creationTimeoutSeconds.seconds}")
             }
 
-        } catch (e: TableExistsException) {
-            logger.warn("Exception caught when attempting to create Hbase table",
+        } catch (e: Exception) {
+            logger.error("Exception caught when attempting to create Hbase table", e,
                 "table_name" to collectionName)
         }
     }
