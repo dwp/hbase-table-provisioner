@@ -19,13 +19,16 @@ class HbaseTableCreatorServiceImpl(
 
     @ExperimentalTime
     override suspend fun createHbaseTableFromProps(collectionName: String, splits: List<ByteArray>) {
-        ensureNamespaceExists(collectionName)
-
-        if (checkIfTableExists(collectionName)) {
-            logger.warn("Table already exists in hbase for collection",
-                "table_name" to collectionName)
-        } else {
-            createHbaseTable(collectionName, splits)
+        try {
+            ensureNamespaceExists(collectionName)
+            if (checkIfTableExists(collectionName)) {
+                logger.warn("Table already exists in hbase for collection",
+                    "table_name" to collectionName)
+            } else {
+                createHbaseTable(collectionName, splits)
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to create table", e, "collection_name" to collectionName)
         }
     }
 
@@ -40,8 +43,6 @@ class HbaseTableCreatorServiceImpl(
             }
         } catch (e: NamespaceExistException) {
             logger.info("Namespace already exists, probably created by another process", "namespace" to namespace)
-        } catch (e: Exception) {
-            logger.error("Error processing namespace", e, "namespace" to namespace)
         } finally {
             if (namespace.isNotBlank()) {
                 namespaces[namespace] = true

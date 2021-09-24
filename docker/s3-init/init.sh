@@ -31,7 +31,9 @@ aws_s3 ls s3://${S3_BUCKET} --recursive
 stderr making corporate storage input
 aws_s3 mb s3://corporate-storage-input
 
-declare -A topic_sizes=(["hyphenated-database.collection1"]=1 ["database.collection2"]=5 ["database.collection3"]=10)
+declare -A topic_sizes=(["hyphenated-database.collection1"]=1
+                        ["database.collection2"]=5
+                        ["crypto.encryptedData.unencrypted"]=10)
 
 for year in 2020 2021; do
   for month in $(seq 1 3); do
@@ -39,9 +41,10 @@ for year in 2020 2021; do
     for day in $(seq 9 14); do
       day=$(printf "%02d" $day)
       for topic in "${!topic_sizes[@]}"; do
-        database=${topic%.*}
+        database=${topic%%.*}
         database=${database/-/_}
         collection=${topic#*.}
+        collection=${collection/./_}
         size=${topic_sizes[$topic]}
         for file in $(seq 3); do
           target=s3://corporate-storage-input/corporate_storage/ucfs_main/$year/$month/$day/$database/$collection/db.${topic}_${file}_1000_1010.jsonl.gz

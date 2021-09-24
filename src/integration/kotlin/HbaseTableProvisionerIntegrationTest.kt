@@ -32,7 +32,7 @@ class HbaseTableProvisionerIntegrationTest : StringSpec() {
         "crypto:encryptedData" to 30 * regionReplication,
         "hyphenated_database:collection1" to 2 * regionReplication,
         "database:collection2" to 10 * regionReplication,
-        "database:collection3" to 20 * regionReplication
+        "crypto:encryptedData_unencrypted" to 20 * regionReplication
     ).toSortedMap()
 
     private fun hbaseConnection(): Connection {
