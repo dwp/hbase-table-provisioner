@@ -22,7 +22,7 @@ services:
     build: ./
     container_name: hbase-table-provisioner-cdl-inputs
     environment:
-      COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '(?:db\.)?([-.\w]+)\.([-.\w]+)_\d+_\d+_\d+.jsonl.gz$$'
+      COLLECTIONS_FILENAME_FORMAT_REGEX_PATTERN: '(?:db\.)?([-.\w]+?)\.([-.\w]+)_\d+_\d+_\d+.jsonl.gz$$'
       COLLECTIONS_INPUT_TYPE: 'CDL'
       COLLECTIONS_INPUT_BUCKET: corporate-storage-input
       COLLECTIONS_INPUT_BASE_PATH: corporate_storage/ucfs_main
