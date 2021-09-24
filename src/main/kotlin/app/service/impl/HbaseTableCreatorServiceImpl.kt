@@ -2,22 +2,20 @@ package app.service.impl
 
 import app.service.HbaseTableCreatorService
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.hadoop.hbase.*
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.io.compress.Compression
 import org.springframework.stereotype.Service
 import uk.gov.dwp.dataworks.logging.DataworksLogger
-import org.apache.hadoop.hbase.TableExistsException
 import kotlin.time.*
 
 @Service
 class HbaseTableCreatorServiceImpl(
-        private val hbaseConnection: Connection,
-        private val columnFamily: String,
-        private val regionReplicationCount: Int,
-        private val creationTimeoutSeconds: Int) : HbaseTableCreatorService {
+    private val hbaseConnection: Connection,
+    private val columnFamily: String,
+    private val regionReplicationCount: Int,
+    private val creationTimeoutSeconds: Int): HbaseTableCreatorService {
 
     @ExperimentalTime
     override suspend fun createHbaseTableFromProps(collectionName: String, splits: List<ByteArray>) {
@@ -32,17 +30,20 @@ class HbaseTableCreatorServiceImpl(
     }
 
     fun ensureNamespaceExists(collectionName: String) {
-
-        val dataTableName = TableName.valueOf(collectionName)
-        val namespace = dataTableName.namespaceAsString
-
-        if (!namespaces.contains(namespace)) {
-            try {
+        var namespace = ""
+        try {
+            val dataTableName = TableName.valueOf(collectionName)
+            namespace = dataTableName.namespaceAsString
+            if (!namespaces.contains(namespace)) {
                 logger.info("Creating namespace", "namespace" to namespace)
                 hbaseConnection.admin.createNamespace(NamespaceDescriptor.create(namespace).build())
-            } catch (e: NamespaceExistException) {
-                logger.info("Namespace already exists, probably created by another process", "namespace" to namespace)
-            } finally {
+            }
+        } catch (e: NamespaceExistException) {
+            logger.info("Namespace already exists, probably created by another process", "namespace" to namespace)
+        } catch (e: Exception) {
+            logger.error("Error processing namespace", e, "namespace" to namespace)
+        } finally {
+            if (namespace.isNotBlank()) {
                 namespaces[namespace] = true
             }
         }
@@ -73,9 +74,10 @@ class HbaseTableCreatorServiceImpl(
                         logger.info("Creating table asynchronously", "table" to "$hbaseTable",
                             "splits" to "${splits.size}", "operation_timeout" to "${creationTimeoutSeconds.seconds}")
                         hbaseConnection.admin.createTableAsync(hbaseTable, splits.toTypedArray())
-                    }
-                    else {
-                        logger.info("No splits, creating table synchronously", "table" to "$hbaseTable", "splits" to "${splits.size}",
+                    } else {
+                        logger.info("No splits, creating table synchronously",
+                            "table" to "$hbaseTable",
+                            "splits" to "${splits.size}",
                             "operation_timeout" to "${creationTimeoutSeconds.seconds}")
                         hbaseConnection.admin.createTable(hbaseTable)
                     }
@@ -87,7 +89,7 @@ class HbaseTableCreatorServiceImpl(
                     }
                 }
 
-                logger.info("Created Hbase table","table_name" to collectionName,
+                logger.info("Created Hbase table", "table_name" to collectionName,
                     "duration" to "$duration",
                     "operation_timeout" to "${creationTimeoutSeconds.seconds}")
             }
@@ -109,9 +111,9 @@ class HbaseTableCreatorServiceImpl(
         val extantNamespaces = mutableMapOf<String, Boolean>()
 
         hbaseConnection.admin.listNamespaceDescriptors()
-                .forEach {
-                    extantNamespaces[it.name] = true
-                }
+            .forEach {
+                extantNamespaces[it.name] = true
+            }
 
         extantNamespaces
     }
