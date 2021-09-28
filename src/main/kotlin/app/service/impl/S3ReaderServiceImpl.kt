@@ -25,7 +25,7 @@ class S3ReaderServiceImpl(val s3Client: AmazonS3,
             .mapNotNull { (key, size) ->
                 filenameRegex.find(key)?.let {
                     val (database, collection) = it.destructured
-                    Pair("${database.replace('-', '_')}:${collection.replace(".", "_")}", size)
+                    Pair("${database.replace('-', '_')}:${collection.replace(Regex("[-.]"), "_")}", size)
                 }
             }.groupingBy { (topic, _) -> topic }
             .fold(0L) { i, (_, size) -> i + size }
