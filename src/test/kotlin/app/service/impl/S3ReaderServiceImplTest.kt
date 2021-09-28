@@ -9,9 +9,39 @@ import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.nhaarman.mockitokotlin2.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 
 class S3ReaderServiceImplTest {
+
+    @ParameterizedTest
+    @CsvSource("database/collection_dash/db.database.collection-dash_1_2_3.jsonl.gz,database:collection_dash",
+                "database/collection_dot/db.database.collection.dot_1_2_3.jsonl.gz,database:collection_dot",
+                "database_dash/collection/db.database-dash.collection_1_2_3.jsonl.gz,database_dash:collection",)
+    fun shouldMakeNecessaryCharacterSubstitutions(path: String, tableName: String) {
+        val summary = mock<S3ObjectSummary> {
+            on { size } doReturn 10
+            on { key } doReturn "directory/sub-directory/2021/09/28/$path"
+        }
+
+        val result = mock<ListObjectsV2Result> {
+            on { objectSummaries } doReturn listOf(summary)
+            on { isTruncated } doReturn false
+        }
+
+        val amazonS3 = mock<AmazonS3> {
+            on { listObjectsV2(any<ListObjectsV2Request>()) } doReturn result
+        }
+
+        val service = service(amazonS3, mock(), filenameRe = cdlPattern)
+        val results: Map<String, Long> = service.collectionSizes()
+        assertEquals(1, results.size)
+        print("RESULTS: $results")
+        assertTrue(results.containsKey(tableName))
+    }
 
     @Test
     fun shouldAccumulateCdlInputSizesPerCollection() {
@@ -128,12 +158,12 @@ class S3ReaderServiceImplTest {
     private fun service(s3Client: AmazonS3, s3HelperMock: S3Helper, sourceDatabasePaths: String = "", filenameRe: String = filenameFormatRegexPattern)
             = S3ReaderServiceImpl(s3Client, s3HelperMock, bucket, basePath, sourceDatabasePaths, filenameRe, collectionNameRegexPattern)
 
-    private fun summariesResult(objectSummaries1: List<S3ObjectSummary>,
+    private fun summariesResult(summaries: List<S3ObjectSummary>,
                                 continuationToken: String? = null): ListObjectsV2Result =
         mock {
             on { isTruncated } doReturn !continuationToken.isNullOrBlank()
             on { nextContinuationToken } doReturn continuationToken
-            on { objectSummaries } doReturn objectSummaries1
+            on { objectSummaries } doReturn summaries
         }
 
     private fun summaries(day: String): List<S3ObjectSummary> =
@@ -149,6 +179,6 @@ class S3ReaderServiceImplTest {
         const val basePath = "/business/mongo"
         const val filenameFormatRegexPattern = "[\\w-]+\\.[\\w-]+\\.[0-9]+\\.json\\.gz\\.enc"
         const val collectionNameRegexPattern = "([-\\w]+\\.[-.\\w]+)\\.[0-9]+\\.json\\.gz\\.enc"
-        const val cdlPattern = """(?:db\.)?([-.\w]+)\.([-.\w]+)_\d+_\d+_\d+.jsonl.gz$"""
+        const val cdlPattern = """(?:db\.)?([-.\w]+?)\.([-.\w]+)_\d+_\d+_\d+.jsonl.gz$"""
     }
 }
