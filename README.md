@@ -1,3 +1,5 @@
+# DO NOT USE THIS REPO - MIGRATED TO GITLAB
+
 # hbase-table-provisioner
 
 Hbase to Provisioner is a Kotlin application which calculates the number of Hbase regions a collection requires to be correctly split prior to a dataload, to prevent the Hbase splitting event occurring.
